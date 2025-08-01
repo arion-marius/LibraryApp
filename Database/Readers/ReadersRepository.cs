@@ -1,6 +1,8 @@
 ﻿using Application.Database.Readers;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Application.Database;
@@ -16,8 +18,20 @@ public class ReadersRepository : IReadersRepository
 
     public async Task<List<ReaderModel>> GetReadersFromDbAsync()
     {
-        return await _dbContext.Readers.ToListAsync();
+        var readers = await _dbContext.Readers
+            .Select(r => new ReaderModel
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Email = r.Email,
+                BooksBorrowed = r.ReaderBooks.Count(),
+                HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
+            })
+            .ToListAsync();
+
+        return readers;
     }
+
     public async Task<ReaderModel?> GetReaderByIdAsync(int id)
     {
         return await _dbContext.Readers.FindAsync(id);
