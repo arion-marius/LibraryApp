@@ -1,0 +1,25 @@
+﻿@model Application.Database.Readers.ReaderModel
+
+<h2>Books borrowed by @Model.Name</h2>
+
+
+    <table class="table table-hover table-striped align-middle text-center shadow">
+            <thead class="table-dark">
+            <tr>
+                <th>Book Title</th>
+            <th>Date of loan</th>
+            <th>Date of return</th>
+            </tr>
+        </thead>
+        <tbody> 
+            @foreach (var rb in Model.ReaderBooks)
+            {
+                var rowClass = rb.PickUpDate.AddMonths(1) < DateTime.Now ? "table-danger" : "";
+                <tr class="@rowClass">
+                    <td style="">@rb.Book.Title</td>
+                    <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
+                    <td>@rb.PickUpDate.AddMonths(1).ToString("dd.MM.yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>

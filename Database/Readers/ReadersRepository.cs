@@ -1,0 +1,52 @@
+﻿using Application.Database.Readers;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Application.Database;
+
+public class ReadersRepository : IReadersRepository
+{
+    private readonly LibraryDbContext _dbContext;
+
+    public ReadersRepository(LibraryDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<List<ReaderModel>> GetReadersFromDbAsync()
+    {
+        return await _dbContext.Readers.ToListAsync();
+    }
+    public async Task<ReaderModel?> GetReaderByIdAsync(int id)
+    {
+        return await _dbContext.Readers.FindAsync(id);
+    }
+
+    public async Task UpdateReaderAsync(ReaderModel reader)
+    {
+        _dbContext.Readers.Update(reader);
+        await _dbContext.SaveChangesAsync();
+    }
+    public async Task<(bool success, string message)> DeleteReaderAsync(int id)
+    {
+        var reader = await _dbContext.Readers.FindAsync(id);
+
+        bool hasBorrowedBooks = await _dbContext.ReaderBooks.AnyAsync(rb => rb.ReaderId == id);
+        if (hasBorrowedBooks)
+            return (false, $"Reader {reader.Name} cannot be deleted because they have books on loan.");
+
+        _dbContext.Readers.Remove(reader);
+        await _dbContext.SaveChangesAsync();
+
+        return (true, $"Reader {reader.Name} was successfully deleted.");
+    }
+    public async Task<ReaderModel?> GetReaderWithBooksByIdAsync(int id)
+    {
+        return await _dbContext.Readers
+            .Include(r => r.ReaderBooks)
+                .ThenInclude(rb => rb.Book)
+            .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+}
