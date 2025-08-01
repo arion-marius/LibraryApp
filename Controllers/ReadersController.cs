@@ -86,4 +86,14 @@ public class ReadersController(IReadersRepository repository) : Controller
         return RedirectToAction(nameof(GetReadersFromDb));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> History(int id)
+    {
+        var reader = await _repository.GetReaderWithBooksByIdAsync(id);
+        if (reader == null)
+            return NotFound();
+
+        return View(reader);
+    }
+
 }
