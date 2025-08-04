@@ -9,7 +9,6 @@ public class ReaderBookModelConfiguration : IEntityTypeConfiguration<ReaderBookM
     {
         builder.HasKey(x => new { x.ReaderId, x.BookId });
 
-        // Configure the foreign key relationships
         builder.HasOne(x => x.Reader)
             .WithMany(r => r.ReaderBooks)
             .HasForeignKey(x => x.ReaderId)

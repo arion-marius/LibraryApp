@@ -34,7 +34,8 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View("Index", pagedReaders);
     }
 
-    [HttpGet ("Edit2/{id}")]
+
+    [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var reader = await _readerRepository.GetReaderByIdAsync(id);
@@ -44,7 +45,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpGet ("Details/{id}")]
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
@@ -54,7 +55,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpPost ("Edit/{id}")]
+    [HttpPost]
     public async Task<IActionResult> Edit(ReaderModel reader)
     {
         if (!ModelState.IsValid)
@@ -89,8 +90,13 @@ public class ReadersController(IReadersRepository repository) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
+    public async Task<IActionResult> Borrow(int readerId, int bookId, string? cancel)
     {
+        if (!string.IsNullOrEmpty(cancel))
+        {
+            return RedirectToAction(nameof(GetReadersFromDb));
+        }
+
         if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
         {
             TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
@@ -104,4 +110,5 @@ public class ReadersController(IReadersRepository repository) : Controller
         TempData["AlertType"] = "success";
         return RedirectToAction(nameof(GetReadersFromDb));
     }
+
 }
