@@ -17,6 +17,7 @@ public class ReadersController(IReadersRepository repository) : Controller
     {
         var readers = await _readerRepository.GetReadersFromDbAsync();
 
+        // de refacut --> nu filtram, nu paginam in memorie.
         if (!string.IsNullOrWhiteSpace(search))
         {
             readers = readers
@@ -29,6 +30,28 @@ public class ReadersController(IReadersRepository repository) : Controller
 
         var pagedReaders = readers.ToPagedList(pageNumber, pageSize);
         ViewData["Action"] = "GetReadersFromDb";
+        ViewData["Search"] = search;
+
+        return View("Index", pagedReaders);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
+    {
+        int pageSize = 5;
+        int pageNumber = page ?? 1;
+
+        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(pageSize, pageNumber);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            readers = readers
+                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        var pagedReaders = readers.ToPagedList(pageNumber, pageSize);
+        ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
         ViewData["Search"] = search;
 
         return View("Index", pagedReaders);
@@ -90,7 +113,7 @@ public class ReadersController(IReadersRepository repository) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Borrow(int readerId, int bookId, string? cancel)
+    public async Task<IActionResult> ReturnBook(int readerId, int bookId, string? cancel)
     {
         if (!string.IsNullOrEmpty(cancel))
         {

@@ -1,5 +1,6 @@
 ﻿using Application.Database.ReaderBooks;
 using Application.Database.Readers;
+using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,10 @@ public class ReadersRepository : IReadersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ReaderModel>> GetReadersFromDbAsync()
+    public async Task<List<ReaderSummaryDto>> GetReadersFromDbAsync()
     {
         var readers = await _dbContext.Readers
-            .Select(r => new ReaderModel
+            .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
                 Name = r.Name,
@@ -28,6 +29,25 @@ public class ReadersRepository : IReadersRepository
                 BooksBorrowed = r.ReaderBooks.Count(),
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
+            .ToListAsync();
+
+        return readers;
+    }
+
+    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(int pageSize, int pageNumber)
+    {
+        var readers = await _dbContext.Readers
+            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
+            .Select(r => new ReaderSummaryDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Email = r.Email,
+                BooksBorrowed = r.BooksBorrowed ?? 0,
+                HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
+            })
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return readers;
@@ -58,12 +78,27 @@ public class ReadersRepository : IReadersRepository
         return (true, $"Reader {reader.Name} was successfully deleted.");
     }
 
-    public async Task<ReaderModel> GetReaderWithBooksByIdAsync(int id)
+    public async Task<ReaderDto> GetReaderWithBooksByIdAsync(int id)
     {
         return await _dbContext.Readers
-            .Include(r => r.ReaderBooks)
-                .ThenInclude(rb => rb.Book)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .Include(r => r.ReaderBooks).ThenInclude(rb => rb.Book)
+            .Where(x => x.Id == id)
+            .Select(x => new ReaderDto
+            {
+                Id = id,
+                Name = x.Name,
+                Email = x.Email,
+                BooksBorrowed = x.BooksBorrowed,
+                Books = x.ReaderBooks.Select(rb => new BookDto
+                {
+                    Id = rb.BookId,
+                    Title = rb.Book.Title,
+                    Author = rb.Book.Author,
+                    PickUpDate = rb.PickUpDate,
+                    ReturnDate = rb.ReturnedDate,
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<bool> HasReachedBorrowLimitAsync(int readerId)
@@ -74,6 +109,8 @@ public class ReadersRepository : IReadersRepository
 
     public async Task AddReaderBookAsync(int readerId, int bookId)
     {
+        var book = _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
+
         var readerBook = new ReaderBookModel
         {
             ReaderId = readerId,

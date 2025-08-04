@@ -1,4 +1,4 @@
-﻿@model Application.Database.Readers.ReaderModel
+﻿@model Application.Dtos.ReaderDto
 
 <h2>Books borrowed by @Model.Name</h2>
 
@@ -12,15 +12,15 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var rb in Model.ReaderBooks)
+        @foreach (var book in Model.Books)
         {
-            var isDelayed = !rb.ReturnedDate.HasValue && rb.PickUpDate < rb.PickUpDate.AddMonths(1);
+            var isDelayed = !book.ReturnDate.HasValue && book.PickUpDate < book.PickUpDate.AddMonths(1);
 
             var rowClass = isDelayed ? "table-danger" : "";
             <tr class="@rowClass">
-                <td style="">@rb.Book.Title</td>
-                <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
-                <td>@(rb.ReturnedDate?.ToString("dd.MM.yyyy"))</td>
+                <td style="">@book.Title</td>
+                <td>@book.PickUpDate.ToString("dd.MM.yyyy")</td>
+                <td>@(book.ReturnDate?.ToString("dd.MM.yyyy"))</td>
             </tr>
         }
     </tbody>

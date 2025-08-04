@@ -13,8 +13,5 @@ public class ReaderModel
     public int? BooksBorrowed { get; set; } 
     public string Email { get; set; } = string.Empty;
 
-    [NotMapped]
-    public bool HasLateBooks { get; set; }
-
-    public IEnumerable<ReaderBookModel> ReaderBooks { get; set; } = new List<ReaderBookModel>();
+    public ICollection<ReaderBookModel> ReaderBooks { get; set; } = [];
 }

@@ -1,8 +1,9 @@
 ﻿@using Application.Database.Books
 @using Application.Database.Readers
+@using Application.Dtos
 @using X.PagedList
 @using X.PagedList.Mvc.Core
-@model IPagedList<BookModel>
+@model IPagedList<ReaderSummaryDto>
 
 <h2>@ViewData["Title"]</h2>
 
@@ -34,9 +35,32 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var book in Model)
+        @foreach (var reader in Model)
         {
             <tr>
+                <td>
+                    <a asp-action="History" asp-route-id="@reader.Id">@reader.Name</a>
+                    @if (reader.HasLateBooks)
+                    {
+                        <span class="badge bg-danger ms-2">Late</span>
+                    }
+                </td>
+                <td>@reader.Email</td>
+                <td>
+                    @reader.BooksBorrowed
+                    @if (reader.BooksBorrowed > 0)
+                    {
+                        <a asp-action="Details" asp-route-id="@reader.Id" class="btn btn-link btn-sm">(vezi)</a>
+                    }
+                </td>
+                <td class="text-center">
+                    <a asp-action="Edit" asp-route-id="@reader.Id" class="btn btn-sm btn-warning">✏️</a>
+                    <form asp-action="Delete" asp-route-id="@reader.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this reader?');" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+           @*  <tr>
                 <td>@book.Title</td>
                 <td>@book.Author</td>
                 <td>@book.Stock</td>
@@ -58,7 +82,7 @@
                         <button class="btn btn-sm btn-secondary" disabled>Out of stock</button>
                     }
                 </td>
-            </tr>
+            </tr> *@
         }
     </tbody>
 </table>

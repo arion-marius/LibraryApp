@@ -102,7 +102,7 @@
 
             <form method="post" asp-action="Borrow" asp-controller="Books">
                 <select name="readerId" class="form-select mb-3" required>
-                    @foreach (var reader in (List<Application.Database.Readers.ReaderModel>)ViewData["ReadersList"])
+                    @foreach (var reader in (List<Application.Dtos.ReaderSummaryDto>)ViewData["ReadersList"])
                     {
                         <option value="@reader.Id">@reader.Name</option>
                     }

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Application.Database.CustomExceptions;
+using Application.Database.ReaderBooks;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,45 +16,12 @@ public class BooksRepository : IBooksRepository
         _dbContext = dbContext;
     }
 
-    //public Task<List<BookModel>> GetBooksAsync()
-    //{
-    //    return Task.FromResult(
-    //        new List<BookModel>
-    //        {
-    //            //new() { Id = 1, Title = "1984", Author = "George Orwell", Stock = 10 },
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee", Stock = 10},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald", Stock = 10, BorrowedCount = 0 },
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee"   , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald"    , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 1, Title = "1984", Author = "George Orwell" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10  , BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0}
-    //        });
-    //}
-
-    public async Task<List<BookModel>> GetBooksFromDbAsync()
+    public async Task<List<BookModel>> GetBooksAsync()
     {
         var books = await _dbContext.Books.ToListAsync();
         return books;
     }
+
     public async Task<(bool success, string message)> DeleteBookAsync(int id)
     {
         var book = await _dbContext.Books.FindAsync(id);
@@ -83,4 +52,33 @@ public class BooksRepository : IBooksRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task BorrowAsync(int bookId, int readerId)
+    {
+        var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
+        if (book == null)
+        {
+            throw new BookNotFoundException();
+        }
+
+        var reader = await _dbContext.Readers.FirstOrDefaultAsync(x => x.Id == readerId);
+        if (reader == null)
+        {
+            throw new ReaderNotFoundException();
+        }
+
+        if (reader.BooksBorrowed >= 5)
+        {
+            throw new TooManyBooksException();
+        }
+
+        reader.BooksBorrowed++;
+        reader.ReaderBooks.Add(new()
+        {
+            BookId = bookId,
+            ReaderId = readerId,
+            PickUpDate = DateTime.Now,
+        });
+
+        await _dbContext.SaveChangesAsync();
+    }
 }

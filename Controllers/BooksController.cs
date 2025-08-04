@@ -1,5 +1,6 @@
 using Application.Database;
 using Application.Database.Books;
+using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,19 +12,19 @@ namespace Application.Controllers;
 
 public class BooksController : Controller
 {
-    private readonly IBooksRepository _repository;
+    private readonly IBooksRepository _bookRepository;
     private readonly IReadersRepository _readersRepository;
 
     public BooksController(IBooksRepository repository, IReadersRepository readersRepository)
     {
-        _repository = repository;
+        _bookRepository = repository;
         _readersRepository = readersRepository;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetBooksFromDb(string? search, int? page)
     {
-        var books = await _repository.GetBooksFromDbAsync();
+        var books = await _bookRepository.GetBooksAsync();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -55,7 +56,7 @@ public class BooksController : Controller
             return View(book);
         }
 
-        await _repository.AddBookAsync(book);
+        await _bookRepository.AddBookAsync(book);
 
         TempData["AlertMessage"] = $"The book \"{book.Title}\" has been added.";
         TempData["AlertType"] = "success";
@@ -66,7 +67,7 @@ public class BooksController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var book = await _repository.GetBookByIdAsync(id);
+        var book = await _bookRepository.GetBookByIdAsync(id);
         if (book == null)
             return NotFound();
 
@@ -79,7 +80,7 @@ public class BooksController : Controller
         if (!ModelState.IsValid)
             return View(book);
 
-        await _repository.UpdateBookAsync(book);
+        await _bookRepository.UpdateBookAsync(book);
         TempData["AlertMessage"] = $"The book \"{book.Title}\" has been updated.";
         TempData["AlertType"] = "success";
 
@@ -89,19 +90,20 @@ public class BooksController : Controller
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        var (success, message) = await _repository.DeleteBookAsync(id);
+        var (success, message) = await _bookRepository.DeleteBookAsync(id);
 
         TempData["AlertMessage"] = message;
         TempData["AlertType"] = success ? "success" : "warning";
 
         return RedirectToAction(nameof(GetBooksFromDb));
     }
+
     [HttpPost]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string? cancel, int? page, string? search)
     {
         if (!string.IsNullOrEmpty(cancel))
         {
-            var books = await _repository.GetBooksFromDbAsync();
+            var books = await _bookRepository.GetBooksAsync();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -127,7 +129,7 @@ public class BooksController : Controller
         ViewData["CurrentBookId"] = bookId;
         ViewData["ShowBorrowPopup"] = true;
 
-        var booksList = await _repository.GetBooksFromDbAsync();
+        var booksList = await _bookRepository.GetBooksAsync();
         var pagedBooksList = booksList.ToPagedList(1, 5);
         ViewData["Action"] = "GetBooksFromDb";
         ViewData["Search"] = "";
@@ -144,33 +146,32 @@ public class BooksController : Controller
             return RedirectToAction(nameof(GetBooksFromDb));
         }
 
-        var book = await _repository.GetBookByIdAsync(bookId);
-        if (book == null || book.Stock <= 0)
+        try
+        {
+            await _bookRepository.BorrowAsync(bookId, readerId);
+        }
+        catch (BookNotFoundException)
         {
             TempData["AlertMessage"] = "Book is not available.";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
-
-        if (await _readersRepository.HasReachedBorrowLimitAsync(readerId))
+        catch(ReaderNotFoundException)
+        {
+            TempData["AlertMessage"] = "Reader is not available.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (TooManyBooksException)
         {
             TempData["AlertMessage"] = "Reader has already borrowed 5 books.";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
 
-        await _readersRepository.AddReaderBookAsync(readerId, bookId);
-
-        book.Stock--;
-        await _repository.UpdateBookAsync(book);
-
         TempData["AlertMessage"] = "Book borrowed successfully.";
         TempData["AlertType"] = "success";
 
         return RedirectToAction(nameof(GetBooksFromDb));
-
     }
-
-
-
 }
