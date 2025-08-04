@@ -1,4 +1,5 @@
-﻿using Application.Database.Readers;
+﻿using Application.Database.ReaderBooks;
+using Application.Database.Readers;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,7 @@ public class ReadersRepository : IReadersRepository
         _dbContext.Readers.Update(reader);
         await _dbContext.SaveChangesAsync();
     }
+
     public async Task<(bool success, string message)> DeleteReaderAsync(int id)
     {
         var reader = await _dbContext.Readers.FindAsync(id);
@@ -55,12 +57,34 @@ public class ReadersRepository : IReadersRepository
 
         return (true, $"Reader {reader.Name} was successfully deleted.");
     }
-    public async Task<ReaderModel?> GetReaderWithBooksByIdAsync(int id)
+
+    public async Task<ReaderModel> GetReaderWithBooksByIdAsync(int id)
     {
         return await _dbContext.Readers
             .Include(r => r.ReaderBooks)
                 .ThenInclude(rb => rb.Book)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
+
+    public async Task<bool> HasReachedBorrowLimitAsync(int readerId)
+    {
+        return await _dbContext.ReaderBooks
+            .CountAsync(rb => rb.ReaderId == readerId && rb.ReturnedDate == null) >= 5;
+    }
+
+    public async Task AddReaderBookAsync(int readerId, int bookId)
+    {
+        var readerBook = new ReaderBookModel
+        {
+            ReaderId = readerId,
+            BookId = bookId,
+            PickUpDate = DateTime.Now,
+            ReturnedDate = null
+        };
+
+        _dbContext.ReaderBooks.Add(readerBook);
+        await _dbContext.SaveChangesAsync();
+    }
+
 
 }
