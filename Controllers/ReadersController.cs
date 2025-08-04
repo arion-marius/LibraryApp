@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using X.PagedList.Extensions;
 
 namespace Application.Controllers;
-[Route("Readers")]
+
 public class ReadersController(IReadersRepository repository) : Controller
 {
     private readonly IReadersRepository _readerRepository = repository;
 
-    [HttpGet ("")]
+    [HttpGet]
     public async Task<IActionResult> GetReadersFromDb(string? search, int? page)
     {
         var readers = await _readerRepository.GetReadersFromDbAsync();
@@ -67,7 +67,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         return RedirectToAction(nameof(GetReadersFromDb));
     }
 
-    [HttpPost ("Delete/{id}")]
+    [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
         var (success, message) = await _readerRepository.DeleteReaderAsync(id);
@@ -78,7 +78,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         return RedirectToAction(nameof(GetReadersFromDb));
     }
 
-    [HttpGet ("History/{id}")]
+    [HttpGet]
     public async Task<IActionResult> History(int id)
     {
         var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
@@ -88,7 +88,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpPost("Borrow/{readerId}/{bookId}")]
+    [HttpPost]
     public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
     {
         if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
