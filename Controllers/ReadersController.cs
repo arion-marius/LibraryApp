@@ -1,7 +1,6 @@
-﻿using Application.Database;
+﻿using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,12 +10,12 @@ namespace Application.Controllers;
 
 public class ReadersController(IReadersRepository repository) : Controller
 {
-    private readonly IReadersRepository _repository = repository;
+    private readonly IReadersRepository _readerRepository = repository;
 
     [HttpGet]
     public async Task<IActionResult> GetReadersFromDb(string? search, int? page)
     {
-        var readers = await _repository.GetReadersFromDbAsync();
+        var readers = await _readerRepository.GetReadersFromDbAsync();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -35,39 +34,33 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View("Index", pagedReaders);
     }
 
-    [HttpGet]
+    [HttpGet ("Edit2/{id}")]
     public async Task<IActionResult> Edit(int id)
     {
-        var reader = await _repository.GetReaderByIdAsync(id);
+        var reader = await _readerRepository.GetReaderByIdAsync(id);
         if (reader == null)
             return NotFound();
 
         return View(reader);
     }
 
-    [HttpGet]
+    [HttpGet ("Details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
-        var reader = await _repository.GetReaderWithBooksByIdAsync(id);
-        if (reader == null)
-            return NotFound();
-
-        return View(reader);
-
+        var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
         if (reader == null)
             return NotFound();
 
         return View(reader);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost ("Edit/{id}")]
     public async Task<IActionResult> Edit(ReaderModel reader)
     {
         if (!ModelState.IsValid)
             return View(reader);
 
-        await _repository.UpdateReaderAsync(reader);
+        await _readerRepository.UpdateReaderAsync(reader);
         TempData["AlertMessage"] = $"Reader \"{{reader.Name}}\" has been modified.";
         TempData["AlertType"] = "success";
 
@@ -75,10 +68,9 @@ public class ReadersController(IReadersRepository repository) : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var (success, message) = await _repository.DeleteReaderAsync(id);
+        var (success, message) = await _readerRepository.DeleteReaderAsync(id);
 
         TempData["AlertMessage"] = message;
         TempData["AlertType"] = success ? "success" : "warning";
@@ -89,11 +81,27 @@ public class ReadersController(IReadersRepository repository) : Controller
     [HttpGet]
     public async Task<IActionResult> History(int id)
     {
-        var reader = await _repository.GetReaderWithBooksByIdAsync(id);
+        var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
         if (reader == null)
             return NotFound();
 
         return View(reader);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
+    {
+        if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
+        {
+            TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetReadersFromDb));
+        }
+
+        await _readerRepository.AddReaderBookAsync(readerId, bookId);
+
+        TempData["AlertMessage"] = "Book was successfully borrowed.";
+        TempData["AlertType"] = "success";
+        return RedirectToAction(nameof(GetReadersFromDb));
+    }
 }
