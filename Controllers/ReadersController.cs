@@ -13,29 +13,6 @@ public class ReadersController(IReadersRepository repository) : Controller
     private readonly IReadersRepository _readerRepository = repository;
 
     [HttpGet]
-    public async Task<IActionResult> GetReadersFromDb(string? search, int? page)
-    {
-        var readers = await _readerRepository.GetReadersFromDbAsync();
-
-        // de refacut --> nu filtram, nu paginam in memorie.
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            readers = readers
-                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
-
-        int pageSize = 5;
-        int pageNumber = page ?? 1;
-
-        var pagedReaders = readers.ToPagedList(pageNumber, pageSize);
-        ViewData["Action"] = "GetReadersFromDb";
-        ViewData["Search"] = search;
-
-        return View("Index", pagedReaders);
-    }
-
-    [HttpGet]
     public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
     {
         int pageSize = 5;
@@ -56,7 +33,6 @@ public class ReadersController(IReadersRepository repository) : Controller
 
         return View("Index", pagedReaders);
     }
-
 
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
@@ -85,10 +61,10 @@ public class ReadersController(IReadersRepository repository) : Controller
             return View(reader);
 
         await _readerRepository.UpdateReaderAsync(reader);
-        TempData["AlertMessage"] = $"Reader \"{{reader.Name}}\" has been modified.";
+        TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
         TempData["AlertType"] = "success";
 
-        return RedirectToAction(nameof(GetReadersFromDb));
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
     [HttpPost]
@@ -99,7 +75,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         TempData["AlertMessage"] = message;
         TempData["AlertType"] = success ? "success" : "warning";
 
-        return RedirectToAction(nameof(GetReadersFromDb));
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
     [HttpGet]
@@ -117,21 +93,21 @@ public class ReadersController(IReadersRepository repository) : Controller
     {
         if (!string.IsNullOrEmpty(cancel))
         {
-            return RedirectToAction(nameof(GetReadersFromDb));
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
 
         if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
         {
             TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetReadersFromDb));
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
 
         await _readerRepository.AddReaderBookAsync(readerId, bookId);
 
         TempData["AlertMessage"] = "Book was successfully borrowed.";
         TempData["AlertType"] = "success";
-        return RedirectToAction(nameof(GetReadersFromDb));
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
 }

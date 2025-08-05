@@ -25,14 +25,14 @@ public class BooksRepository : IBooksRepository
     public async Task<(bool success, string message)> DeleteBookAsync(int id)
     {
         var book = await _dbContext.Books.FindAsync(id);
-        bool pulamea = await _dbContext.ReaderBooks.AnyAsync(rb => rb.BookId == id);
-        if (pulamea)
-            return (false, $"The book \"{{book.Title}}\" cannot be deleted because it is on loan.");
+        bool x = await _dbContext.ReaderBooks.AnyAsync(rb => rb.BookId == id);
+        if (x)
+            return (false, $"The book {book.Title} cannot be deleted because it is on loan.");
 
         _dbContext.Books.Remove(book);
         await _dbContext.SaveChangesAsync();
 
-        return (true, $"The book \"{{book.Title}}\" was successfully deleted.");
+        return (true, $"The book {book.Title} was succesfully deleted.");
     }
 
     public async Task<BookModel> GetBookByIdAsync(int id)
