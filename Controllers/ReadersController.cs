@@ -1,16 +1,25 @@
-﻿using Application.Database.ReaderBooks;
+﻿using Application.Database;
+using Application.Database.ReaderBooks;
 using Application.Database.Readers;
+using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using X.PagedList.Extensions;
 
 namespace Application.Controllers;
 
-public class ReadersController(IReadersRepository repository) : Controller
+public class ReadersController : Controller
 {
-    private readonly IReadersRepository _readerRepository = repository;
+    private readonly IReadersRepository _readerRepository;
+
+    public ReadersController(IReadersRepository readerRepository)
+    {
+        _readerRepository = readerRepository;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
@@ -89,7 +98,7 @@ public class ReadersController(IReadersRepository repository) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> ReturnBook(int readerId, int bookId, string? cancel)
+    public async Task<IActionResult> BorrowBook(int readerId, int bookId, string? cancel)
     {
         if (!string.IsNullOrEmpty(cancel))
         {
@@ -110,4 +119,45 @@ public class ReadersController(IReadersRepository repository) : Controller
         return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(string reader, string email)
+    {
+        if (string.IsNullOrWhiteSpace(reader))
+        {
+            ModelState.AddModelError("reader", "obligatoriu");
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            ModelState.AddModelError("email", "obligatoriu");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View();
+        }
+
+        _readerRepository.Insert(reader, email);
+
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ReturnBook(int readerId, int bookId)
+    {
+        if (readerId == 0 || bookId == 0)
+        {
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+
+        var readerDto = await _readerRepository.RemoveReaderBook(readerId, bookId);
+
+        return View(nameof(Details), readerDto);
+    }
 }

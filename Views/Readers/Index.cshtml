@@ -22,7 +22,7 @@
 </form>
 
 <div class="d-flex justify-content-end mb-3">
-    <a asp-action="Create" class="btn btn-success">➕ Add Reader</a>
+    <a asp-action="Create" class="btn btn-success" asp>➕ Add Reader</a>
 </div>
 
 <table class="table table-hover table-striped align-middle text-center shadow">
@@ -50,7 +50,7 @@
                     @reader.BooksBorrowed
                     @if (reader.BooksBorrowed > 0)
                     {
-                        <a asp-action="Details" asp-route-id="@reader.Id" class="btn btn-link btn-sm">(vezi)</a>
+                        <a asp-action="Details" asp-route-id="@reader.Id" class="btn btn-link btn-sm">(see)</a>
                     }
                 </td>
                 <td class="text-center">

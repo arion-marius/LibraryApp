@@ -70,8 +70,8 @@ public class BooksRepository : IBooksRepository
         {
             throw new TooManyBooksException();
         }
-
         reader.BooksBorrowed++;
+        book.Stock--;
         reader.ReaderBooks.Add(new()
         {
             BookId = bookId,

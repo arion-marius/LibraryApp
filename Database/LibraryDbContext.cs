@@ -17,4 +17,4 @@ public class LibraryDbContext(DbContextOptions<LibraryDbContext> options) : DbCo
         builder.ApplyConfiguration(new ReaderModelConfiguration());
         builder.ApplyConfiguration(new ReaderBookModelConfiguration());
     }
-}
+} 

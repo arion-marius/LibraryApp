@@ -58,7 +58,7 @@ public class BooksController : Controller
 
         await _bookRepository.AddBookAsync(book);
 
-        TempData["AlertMessage"] = $"The book \"{book.Title}\" has been added.";
+        TempData["AlertMessage"] = $"The book {book.Title} has been added.";
         TempData["AlertType"] = "success";
 
         return RedirectToAction(nameof(GetBooksFromDb));
