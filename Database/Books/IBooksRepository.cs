@@ -10,6 +10,5 @@ public interface IBooksRepository
     Task<(bool success, string message)> DeleteBookAsync(int id);
     Task<BookModel> GetBookByIdAsync(int id);
     Task<List<BookModel>> GetBooksAsync();
-    // Task AddBookAsync(BookModel book);
     Task UpdateBookAsync(BookModel book);
 }

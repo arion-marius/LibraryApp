@@ -1,8 +1,12 @@
 ﻿using Application.Database.CustomExceptions;
 using Application.Database.ReaderBooks;
+using Application.Database.Readers;
 using Microsoft.EntityFrameworkCore;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Application.Database.Books;
@@ -59,26 +63,34 @@ public class BooksRepository : IBooksRepository
         {
             throw new BookNotFoundException();
         }
+        else if (book.Stock == 0)
+        {
+            throw new BookOutOfStockException();
+        }
 
-        var reader = await _dbContext.Readers.FirstOrDefaultAsync(x => x.Id == readerId);
+        var reader = await _dbContext.Readers.Include(r => r.ReaderBooks).FirstOrDefaultAsync(x => x.Id == readerId);
         if (reader == null)
         {
             throw new ReaderNotFoundException();
         }
-
         if (reader.BooksBorrowed >= 5)
         {
             throw new TooManyBooksException();
         }
-        reader.BooksBorrowed++;
-        book.Stock--;
+        if (reader.ReaderBooks.Any(x => x.BookId == book.Id && !x.ReturnedDate.HasValue))
+        {
+            throw new BookAlreadyBorrowedException();
+        }
+
         reader.ReaderBooks.Add(new()
         {
             BookId = bookId,
             ReaderId = readerId,
             PickUpDate = DateTime.Now,
         });
-
+        reader.BooksBorrowed++;
+        book.Stock--;
         await _dbContext.SaveChangesAsync();
+
     }
 }

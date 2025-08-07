@@ -156,7 +156,7 @@ public class BooksController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
-        catch(ReaderNotFoundException)
+        catch (ReaderNotFoundException)
         {
             TempData["AlertMessage"] = "Reader is not available.";
             TempData["AlertType"] = "warning";
@@ -165,6 +165,18 @@ public class BooksController : Controller
         catch (TooManyBooksException)
         {
             TempData["AlertMessage"] = "Reader has already borrowed 5 books.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookOutOfStockException)
+        {
+            TempData["AlertMessage"] = "Book is out of stock";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookAlreadyBorrowedException)
+        {
+            TempData["AlertMessage"] = "The book is already borrowed.";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
