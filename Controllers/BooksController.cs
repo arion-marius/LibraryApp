@@ -105,15 +105,15 @@ public class BooksController : Controller
         {
             var books = await _bookRepository.GetBooksAsync();
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                books = books
-                    .Where(b => b.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            books = books
+                .Where(b => b.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
-            int pageSize = 5;
-            int pageNumber = page ?? 1;
+        int pageSize = 5;
+        int pageNumber = page ?? 1;
 
             var pagedBooks = books.ToPagedList(pageNumber, pageSize);
 

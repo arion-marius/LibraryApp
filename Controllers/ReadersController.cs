@@ -3,7 +3,6 @@ using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
 using System.Linq;
@@ -43,7 +42,7 @@ public class ReadersController : Controller
         return View("Index", pagedReaders);
     }
 
-    [HttpGet]
+    [HttpGet("Edit2/{id}")]
     public async Task<IActionResult> Edit(int id)
     {
         var reader = await _readerRepository.GetReaderByIdAsync(id);
@@ -53,7 +52,7 @@ public class ReadersController : Controller
         return View(reader);
     }
 
-    [HttpGet]
+    [HttpGet("Details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
         var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
@@ -97,6 +96,17 @@ public class ReadersController : Controller
         return View(reader);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
+    {
+        if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
+        {
+            TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
+            TempData["AlertType"] = "warning";
+        }
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+
+    }
     [HttpPost]
     public async Task<IActionResult> BorrowBook(int readerId, int bookId, string? cancel)
     {
@@ -161,3 +171,4 @@ public class ReadersController : Controller
         return View(nameof(Details), readerDto);
     }
 }
+
