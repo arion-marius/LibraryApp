@@ -2,8 +2,6 @@
 using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,12 +24,13 @@ public class BooksRepository : IBooksRepository
         return books;
     }
 
+
     public async Task<(bool success, string message)> DeleteBookAsync(int id)
     {
-        var book = await _dbContext.Books.FindAsync(id);
-        bool x = await _dbContext.ReaderBooks.AnyAsync(rb => rb.BookId == id);
-        if (x)
-            return (false, $"The book {book.Title} cannot be deleted because it is on loan.");
+        var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == id);
+        bool isBookBorrowed = book.Readers.Any();
+        if (isBookBorrowed)
+            return (false, $"The book {book.Title} cannot be deleted because it s borrowed.");
 
         _dbContext.Books.Remove(book);
         await _dbContext.SaveChangesAsync();

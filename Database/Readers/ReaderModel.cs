@@ -1,5 +1,4 @@
 ﻿using Application.Database.ReaderBooks;
-using Microsoft.VisualBasic;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,3 +15,4 @@ public class ReaderModel
 
     public ICollection<ReaderBookModel> ReaderBooks { get; set; } = [];
 }
+    

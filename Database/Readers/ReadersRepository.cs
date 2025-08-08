@@ -23,24 +23,7 @@ public class ReadersRepository : IReadersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ReaderSummaryDto>> GetReadersFromDbAsync()
-    {
-        var readers = await _dbContext.Readers.AsNoTracking()
-            .Include(x => x.ReaderBooks)
-            .Select(r => new ReaderSummaryDto
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Email = r.Email,
-                BooksBorrowed = r.BooksBorrowed,
-                HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
-            })
-            .ToListAsync();
-
-        return readers;
-    }
-
-    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(int pageSize, int pageNumber)
+    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync()
     {
         var readers = await _dbContext.Readers
             .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
@@ -52,8 +35,6 @@ public class ReadersRepository : IReadersRepository
                 BooksBorrowed = r.BooksBorrowed,
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync();
 
         return readers;
@@ -127,36 +108,11 @@ public class ReadersRepository : IReadersRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    //public void Test()
-    //{
-    //    var a = new List<int>();
-    //    a.Add(7);
-
-    //    var b = new List<string>();
-    //    b.Add("");
-    //    string asd = "marius";
-    //    b.Add(asd);
-    //    var c = new List<ReaderModel>();
-    //    ReaderModel x = new()
-    //    {
-    //        Name = "a",
-    //        Email = "b"
-    //    };
-    //    c.Add(x);
-
-    //    var name = "name";
-    //    var email = "email";
-    //    var taxi = Create(name, email);
-
-    //    var taxiList = new List<Taxi>();
-    //    taxiList.Add(taxi);
-    //    _dbContext.Readers.Add();
-
-    //}
 
     public void Insert(string reader, string email)
     {
         var newReader = new ReaderModel { Name = reader, Email = email };
+
         _dbContext.Readers.Add(newReader);
 
         _dbContext.SaveChanges();
@@ -203,4 +159,5 @@ public class ReadersRepository : IReadersRepository
                 .ToList()
         };
     }
+
 }

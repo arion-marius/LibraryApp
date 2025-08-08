@@ -5,6 +5,7 @@ using Application.Database.Readers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using X.PagedList.Extensions;
 
@@ -37,7 +38,7 @@ public class BooksController : Controller
         int pageNumber = page ?? 1;
 
         var pagedBooks = books.ToPagedList(pageNumber, pageSize);
-        ViewData["Action"] = "GetBooksFromDb";
+        ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
         return View("Index", pagedBooks);
     }
@@ -68,9 +69,6 @@ public class BooksController : Controller
     public async Task<IActionResult> Edit(int id)
     {
         var book = await _bookRepository.GetBookByIdAsync(id);
-        if (book == null)
-            return NotFound();
-
         return View(book);
     }
 
@@ -99,35 +97,20 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> ShowBorrowPopup(int bookId, string? cancel, int? page, string? search)
+    public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        if (!string.IsNullOrEmpty(cancel))
-        {
-            var books = await _bookRepository.GetBooksAsync();
-
+        var readers = await _readersRepository.GetPaginatedReadersFromDbAsync();
         if (!string.IsNullOrWhiteSpace(search))
         {
-            books = books
-                .Where(b => b.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
+            readers = readers
+                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 
-        int pageSize = 5;
-        int pageNumber = page ?? 1;
-
-            var pagedBooks = books.ToPagedList(pageNumber, pageSize);
-
-            ViewData["Action"] = "GetBooksFromDb";
-            ViewData["Search"] = search;
-            ViewData["ShowBorrowPopup"] = false;
-
-            return View("Index", pagedBooks);
-        }
-
-        var readers = await _readersRepository.GetReadersFromDbAsync();
         ViewData["ReadersList"] = readers;
         ViewData["CurrentBookId"] = bookId;
         ViewData["ShowBorrowPopup"] = true;
+        ViewData["SearchTerm"] = search;
 
         var booksList = await _bookRepository.GetBooksAsync();
         var pagedBooksList = booksList.ToPagedList(1, 5);
@@ -137,15 +120,9 @@ public class BooksController : Controller
         return View("Index", pagedBooksList);
     }
 
-
     [HttpPost]
-    public async Task<IActionResult> Borrow(int readerId, int bookId, string? cancel)
+    public async Task<IActionResult> Borrow(int readerId, int bookId)
     {
-        if (!string.IsNullOrEmpty(cancel))
-        {
-            return RedirectToAction(nameof(GetBooksFromDb));
-        }
-
         try
         {
             await _bookRepository.BorrowAsync(bookId, readerId);

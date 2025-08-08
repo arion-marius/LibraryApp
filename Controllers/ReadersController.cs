@@ -3,9 +3,13 @@ using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Reflection.PortableExecutable;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using X.PagedList.Extensions;
 
@@ -26,7 +30,7 @@ public class ReadersController : Controller
         int pageSize = 5;
         int pageNumber = page ?? 1;
 
-        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(pageSize, pageNumber);
+        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -42,7 +46,7 @@ public class ReadersController : Controller
         return View("Index", pagedReaders);
     }
 
-    [HttpGet("Edit2/{id}")]
+    [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var reader = await _readerRepository.GetReaderByIdAsync(id);
@@ -52,7 +56,7 @@ public class ReadersController : Controller
         return View(reader);
     }
 
-    [HttpGet("Details/{id}")]
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
@@ -97,24 +101,8 @@ public class ReadersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
+    public async Task<IActionResult> BorrowBook(int readerId, int bookId)
     {
-        if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
-        {
-            TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
-            TempData["AlertType"] = "warning";
-        }
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
-
-    }
-    [HttpPost]
-    public async Task<IActionResult> BorrowBook(int readerId, int bookId, string? cancel)
-    {
-        if (!string.IsNullOrEmpty(cancel))
-        {
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
-        }
-
         if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
         {
             TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
@@ -136,26 +124,37 @@ public class ReadersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(string reader, string email)
+    public async Task<IActionResult> Create(string reader, string? email)
     {
-        if (string.IsNullOrWhiteSpace(reader))
-        {
-            ModelState.AddModelError("reader", "obligatoriu");
-        }
 
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            ModelState.AddModelError("email", "obligatoriu");
-        }
-
+        
         if (!ModelState.IsValid)
         {
             return View();
         }
+        if (string.IsNullOrWhiteSpace(reader))
+        {
+            TempData["AlertMessage"] = "reader obligatoriu";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
 
+        if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
+        {
+            TempData["AlertMessage"] = "Email invalid";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
         _readerRepository.Insert(reader, email);
 
         return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        return Regex.IsMatch(email,
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+            RegexOptions.IgnoreCase);
     }
 
     [HttpPost]
@@ -170,5 +169,6 @@ public class ReadersController : Controller
 
         return View(nameof(Details), readerDto);
     }
+
 }
 
