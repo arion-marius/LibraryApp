@@ -2,12 +2,14 @@ using Application.Database;
 using Application.Database.Books;
 using Application.Database.CustomExceptions;
 using Application.Database.Readers;
+using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace Application.Controllers;
@@ -24,27 +26,16 @@ public class BooksController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetBooksFromDb(string? search, int? page)
+    public IActionResult GetBooksFromDb(string? search, int page)
     {
-        var books = await _bookRepository.GetBooksAsync(search);
+        //var books = await _bookRepository.GetBooksAsync(search);
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            books = books
-                .Where(b => b.Title.Contains(search, System.StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+        var pagedBooks = _bookRepository.GetPagedBooks(search, page);
 
-        int pageSize = 5;
-        int pageNumber = page ?? 1;
-
-        //var pagedBooks = books.ToPagedList(pageNumber, pageSize);
-        //var pagedBooks = books.ToPagedList(pageNumber, pageSize);
         ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
-        books.Add(new() { Id = 1000, Title = "ce vreau eu", Stock = 3 });
 
-        return View("Index", books.ToPagedList(pageNumber, pageSize));
+        return View("Index", pagedBooks);
     }
 
     [HttpGet]

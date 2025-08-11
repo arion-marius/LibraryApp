@@ -1,12 +1,14 @@
 ﻿using Application.Database.CustomExceptions;
 using Application.Database.ReaderBooks;
 using Application.Database.Readers;
+using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace Application.Database.Books;
@@ -18,6 +20,23 @@ public class BooksRepository : IBooksRepository
     public BooksRepository(LibraryDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
+    {
+        var books = _dbContext.Books
+            .AsNoTracking()
+            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Select(book => new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Stock = book.Stock,
+            });
+
+        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
+        return pagedList;
     }
 
     public async Task<List<BookModel>> GetBooksAsync(string search, int pageNumber = 1, int pageSize = 5)
