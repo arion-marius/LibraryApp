@@ -28,7 +28,7 @@ public class ReadersRepository : IReadersRepository
     {
         var readers = await _dbContext.Readers
             .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
-            //.Where(r => r.Name.ToLower().Contains(search))
+            .Where(r => string.IsNullOrWhiteSpace(search) ? true : r.Name.Contains(search))
             .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
@@ -38,20 +38,12 @@ public class ReadersRepository : IReadersRepository
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
             .ToListAsync();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var rreaders = readers
-                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            return rreaders;
-        }
 
         return readers;
     }
 
     public async Task<ReaderDto?> GetReaderByIdAsync(int id)
     {
-        //return await _dbContext.Readers.FindAsync(id);
         return await _dbContext.Readers
             .Where(x => x.Id == id)
             .Select(x => new ReaderDto
@@ -66,8 +58,6 @@ public class ReadersRepository : IReadersRepository
 
     public async Task UpdateReaderAsync(ReaderDto reader)
     {
-        //_dbContext.Readers.Update(reader);
-        //await _dbContext.SaveChangesAsync();
         var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
 
         readerModel.Name = reader.Name;
@@ -82,7 +72,7 @@ public class ReadersRepository : IReadersRepository
 
         if (reader.BooksBorrowed > 0)
             return (false, $"Reader {reader.Name} cannot be deleted because they have books on loan.");
-         
+
         _dbContext.Readers.Remove(reader);
         await _dbContext.SaveChangesAsync();
 
@@ -112,33 +102,6 @@ public class ReadersRepository : IReadersRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> HasReachedBorrowLimitAsync(int readerId)
-    {
-        return await _dbContext.ReaderBooks
-            .CountAsync(rb => rb.ReaderId == readerId && rb.ReturnedDate == null) >= 5;
-    }
-
-    public async Task AddReaderBookAsync(int readerId, int bookId)
-    {
-        if (await HasReachedBorrowLimitAsync(readerId))
-        {
-
-            throw new TooManyBooksException();
-        }
-        var readerBook = new ReaderBookModel
-        {
-            ReaderId = readerId,
-            BookId = bookId,
-            PickUpDate = DateTime.Now,
-            ReturnedDate = null
-        };
-
-
-        _dbContext.ReaderBooks.Add(readerBook);
-        await _dbContext.SaveChangesAsync();
-    }
-
-
     public void Insert(string reader, string email)
     {
         var newReader = new ReaderModel { Name = reader, Email = email };
@@ -149,7 +112,7 @@ public class ReadersRepository : IReadersRepository
         }
         else if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
         {
-            throw new InvalidEmailcs();
+            throw new InvalidEmailException();
         }
 
         _dbContext.Readers.Add(newReader);

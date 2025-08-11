@@ -91,29 +91,8 @@ public class ReadersController : Controller
         return View(reader);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> BorrowBook(int readerId, int bookId)
-    {
-        try
-        {
-
-        }
-        catch (TooManyBooksException)
-        {
-            TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
-            TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
-        }
-
-        await _readerRepository.AddReaderBookAsync(readerId, bookId);
-
-        TempData["AlertMessage"] = "Book was successfully borrowed.";
-        TempData["AlertType"] = "success";
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
-    }
-
     [HttpGet]
-    public async Task<IActionResult> Create()
+    public IActionResult Create()
     {
         return View();
     }
@@ -121,7 +100,6 @@ public class ReadersController : Controller
     [HttpPost]
     public async Task<IActionResult> Create(string reader, string? email)
     {
-
         if (!ModelState.IsValid)
         {
             return View();
@@ -129,7 +107,7 @@ public class ReadersController : Controller
 
         try
         {
-
+        _readerRepository.Insert(reader, email);
         }
         catch (ReaderNotFoundException)
         {
@@ -137,14 +115,13 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
-        catch (InvalidEmailcs)
+        catch (InvalidEmailException)
         {
             TempData["AlertMessage"] = "Email invalid";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
-      
-        _readerRepository.Insert(reader, email);
+
 
         return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
