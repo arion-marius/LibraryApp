@@ -95,12 +95,12 @@
 </div>
 
 @if (ViewData["ShowBorrowPopup"] != null && (bool)ViewData["ShowBorrowPopup"])
-{
+{ 
     <div class="popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
         <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
             <h4>Select a reader to borrow the book</h4>
 
-            <!-- Bara de căutare -->
+           
             <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
                 <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
                 <input type="text" name="search" value="@ViewData["SearchTerm"]" placeholder="Caută după nume..." class="form-control mb-2" />

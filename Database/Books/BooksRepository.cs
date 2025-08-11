@@ -2,10 +2,12 @@
 using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList.Extensions;
 
 namespace Application.Database.Books;
 
@@ -18,9 +20,14 @@ public class BooksRepository : IBooksRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<BookModel>> GetBooksAsync()
+    public async Task<List<BookModel>> GetBooksAsync(string search, int pageNumber = 1, int pageSize = 5)
     {
-        var books = await _dbContext.Books.ToListAsync();
+        var books = await _dbContext.Books
+            .AsNoTracking()
+            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Skip(pageSize * (pageNumber - 1))
+            .Take(pageSize)
+            .ToListAsync();
         return books;
     }
 

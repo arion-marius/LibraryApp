@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Application.Database;
@@ -55,8 +56,7 @@ public class ReadersRepository : IReadersRepository
     {
         var reader = await _dbContext.Readers.FindAsync(id);
 
-        bool hasBorrowedBooks = await _dbContext.ReaderBooks.AnyAsync(rb => rb.ReaderId == id);
-        if (hasBorrowedBooks)
+        if (reader.BooksBorrowed > 0)
             return (false, $"Reader {reader.Name} cannot be deleted because they have books on loan.");
 
         _dbContext.Readers.Remove(reader);
@@ -96,6 +96,11 @@ public class ReadersRepository : IReadersRepository
 
     public async Task AddReaderBookAsync(int readerId, int bookId)
     {
+        if (await HasReachedBorrowLimitAsync(readerId))
+        {
+
+            throw new TooManyBooksException();
+        }
         var readerBook = new ReaderBookModel
         {
             ReaderId = readerId,
@@ -103,6 +108,7 @@ public class ReadersRepository : IReadersRepository
             PickUpDate = DateTime.Now,
             ReturnedDate = null
         };
+
 
         _dbContext.ReaderBooks.Add(readerBook);
         await _dbContext.SaveChangesAsync();
@@ -113,9 +119,24 @@ public class ReadersRepository : IReadersRepository
     {
         var newReader = new ReaderModel { Name = reader, Email = email };
 
-        _dbContext.Readers.Add(newReader);
+        if (string.IsNullOrWhiteSpace(reader))
+        {
+            throw new ReaderNotFoundException();
+        }
+        else if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
+        {
+            throw new InvalidEmailcs();
+        }
 
+        _dbContext.Readers.Add(newReader);
         _dbContext.SaveChanges();
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        return Regex.IsMatch(email,
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+            RegexOptions.IgnoreCase);
     }
 
     public async Task<ReaderDto> RemoveReaderBook(int readerId, int bookId)

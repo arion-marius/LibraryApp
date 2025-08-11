@@ -4,6 +4,7 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ public class BooksController : Controller
     [HttpGet]
     public async Task<IActionResult> GetBooksFromDb(string? search, int? page)
     {
-        var books = await _bookRepository.GetBooksAsync();
+        var books = await _bookRepository.GetBooksAsync(search);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -37,10 +38,13 @@ public class BooksController : Controller
         int pageSize = 5;
         int pageNumber = page ?? 1;
 
-        var pagedBooks = books.ToPagedList(pageNumber, pageSize);
+        //var pagedBooks = books.ToPagedList(pageNumber, pageSize);
+        //var pagedBooks = books.ToPagedList(pageNumber, pageSize);
         ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
-        return View("Index", pagedBooks);
+        books.Add(new() { Id = 1000, Title = "ce vreau eu", Stock = 3 });
+
+        return View("Index", books.ToPagedList(pageNumber, pageSize));
     }
 
     [HttpGet]
@@ -112,7 +116,7 @@ public class BooksController : Controller
         ViewData["ShowBorrowPopup"] = true;
         ViewData["SearchTerm"] = search;
 
-        var booksList = await _bookRepository.GetBooksAsync();
+        var booksList = await _bookRepository.GetBooksAsync(search);
         var pagedBooksList = booksList.ToPagedList(1, 5);
         ViewData["Action"] = "GetBooksFromDb";
         ViewData["Search"] = "";
