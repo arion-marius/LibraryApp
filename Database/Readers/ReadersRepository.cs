@@ -58,7 +58,7 @@ public class ReadersRepository : IReadersRepository
 
         if (reader.BooksBorrowed > 0)
             return (false, $"Reader {reader.Name} cannot be deleted because they have books on loan.");
-
+         
         _dbContext.Readers.Remove(reader);
         await _dbContext.SaveChangesAsync();
 
