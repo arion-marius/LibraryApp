@@ -1,15 +1,16 @@
-﻿@model Application.Database.Readers.ReaderModel
+﻿@using Application.Dtos
+@model Application.Dtos.ReaderDto
 
 
 <div class="row">
     <div class="col-md-4 border-end">
         <h1>@Model.Name</h1>
-        <p><strong>Number of books read so far:</strong> @Model.ReaderBooks.Count()</p>
+        <p><strong>Number of books read so far:</strong> @Model.Books.Count()</p>
         <p><strong>Email:</strong> @Model.Email</p>
     </div>
 
     <div class="col-md-8">
-        @if (!Model.ReaderBooks.Any())
+        @if (!Model.Books.Any())
         {
             <p>There are no recorded loans.</p>
         }
@@ -24,15 +25,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var rb in Model.ReaderBooks.OrderByDescending(rb => rb.PickUpDate))
+                    @foreach (var rb in @Model.Books.OrderByDescending(rb => rb.PickUpDate))
                     {
-                        var rowClass = rb.ReturnedDate == null ? "table-danger" : "";
+                        var rowClass = rb.ReturnDate == null ? "table-danger" : "";
                         <tr class="@rowClass">
-                            <td>@rb.Book.Title</td>
+                            <td>@rb.Title</td>
                             <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
                             <td>
-                                @(rb.ReturnedDate.HasValue
-                                                        ? rb.ReturnedDate.Value.ToString("dd.MM.yyyy")
+                                @(rb.ReturnDate.HasValue
+                                                        ? rb.ReturnDate.Value.ToString("dd.MM.yyyy")
                                                         : "")
                     </td>
                 </tr>
