@@ -27,8 +27,8 @@ public class ReadersRepository : IReadersRepository
     public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search)
     {
         var readers = await _dbContext.Readers
-            //.Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
-            .Where(r => r.Name.ToLower().Contains(search))
+            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
+            //.Where(r => r.Name.ToLower().Contains(search))
             .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
@@ -38,18 +38,41 @@ public class ReadersRepository : IReadersRepository
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
             .ToListAsync();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var rreaders = readers
+                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            return rreaders;
+        }
 
         return readers;
     }
 
-    public async Task<ReaderModel?> GetReaderByIdAsync(int id)
+    public async Task<ReaderDto?> GetReaderByIdAsync(int id)
     {
-        return await _dbContext.Readers.FindAsync(id);
+        //return await _dbContext.Readers.FindAsync(id);
+        return await _dbContext.Readers
+            .Where(x => x.Id == id)
+            .Select(x => new ReaderDto
+            {
+                Id = id,
+                Name = x.Name,
+                Email = x.Email,
+                BooksBorrowed = x.BooksBorrowed,
+            })
+            .FirstOrDefaultAsync();
     }
 
-    public async Task UpdateReaderAsync(ReaderModel reader)
+    public async Task UpdateReaderAsync(ReaderDto reader)
     {
-        _dbContext.Readers.Update(reader);
+        //_dbContext.Readers.Update(reader);
+        //await _dbContext.SaveChangesAsync();
+        var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
+
+        readerModel.Name = reader.Name;
+        readerModel.Email = reader.Email;
+
         await _dbContext.SaveChangesAsync();
     }
 

@@ -47,7 +47,7 @@ public class ReadersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(ReaderModel reader)
+    public async Task<IActionResult> Edit(ReaderDto reader)
     {
         if (!ModelState.IsValid)
             return View(reader);
@@ -149,12 +149,6 @@ public class ReadersController : Controller
         return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
-    private bool IsValidEmail(string email)
-    {
-        return Regex.IsMatch(email,
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-            RegexOptions.IgnoreCase);
-    }
 
     [HttpPost]
     public async Task<IActionResult> ReturnBook(int readerId, int bookId)

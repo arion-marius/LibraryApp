@@ -9,8 +9,8 @@ namespace Application.Database.Readers;
 
 public interface IReadersRepository
 {
-    Task<ReaderModel?> GetReaderByIdAsync(int id);
-    Task UpdateReaderAsync(ReaderModel reader);
+    Task<ReaderDto?> GetReaderByIdAsync(int id);
+    Task UpdateReaderAsync(ReaderDto reader);
     Task<ReaderDto?> GetReaderWithBooksByIdAsync(int id);
     Task<bool> HasReachedBorrowLimitAsync(int readerId);
     Task<(bool success, string message)> DeleteReaderAsync(int id);
