@@ -15,7 +15,7 @@ public interface IReadersRepository
     Task<bool> HasReachedBorrowLimitAsync(int readerId);
     Task<(bool success, string message)> DeleteReaderAsync(int id);
     Task AddReaderBookAsync(int readerId, int bookId);
-    Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync();
+    Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search);
     void Insert(string name, string email);
     Task<ReaderDto> RemoveReaderBook(int readerId, int bookId);
 }

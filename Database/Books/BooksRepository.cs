@@ -39,13 +39,16 @@ public class BooksRepository : IBooksRepository
         return pagedList;
     }
 
-    public async Task<List<BookModel>> GetBooksAsync(string search, int pageNumber = 1, int pageSize = 5)
+    public async Task<List<BookDto>> GetBooksAsync(string search)
     {
         var books = await _dbContext.Books
             .AsNoTracking()
             .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
-            .Skip(pageSize * (pageNumber - 1))
-            .Take(pageSize)
+            .Select(book => new BookDto()
+            {
+                Title = book.Title,
+                Author = book.Author,
+            })
             .ToListAsync();
         return books;
     }
@@ -64,9 +67,16 @@ public class BooksRepository : IBooksRepository
         return (true, $"The book {book.Title} was succesfully deleted.");
     }
 
-    public async Task<BookModel> GetBookByIdAsync(int id)
+    public async Task<BookDto> GetBookByIdAsync(int id)
     {
-        return await _dbContext.Books.FindAsync(id);
+        return await _dbContext.Books
+            .AsNoTracking()
+            .Select(book => new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task UpdateBookAsync(BookModel book)

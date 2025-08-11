@@ -4,9 +4,11 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using X.PagedList;
@@ -26,15 +28,22 @@ public class BooksController : Controller
     }
 
     [HttpGet]
-    public IActionResult GetBooksFromDb(string? search, int page)
+    public IActionResult GetBooksFromDb(string? search, int page = 1)
     {
-        //var books = await _bookRepository.GetBooksAsync(search);
-
         var pagedBooks = _bookRepository.GetPagedBooks(search, page);
 
         ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
 
+        var serializablePagedList = new SerializablePagedList<BookDto>
+        {
+            Items = pagedBooks.ToList(),
+            PageNumber = pagedBooks.PageNumber,
+            PageSize = pagedBooks.PageSize,
+            TotalItemCount = pagedBooks.TotalItemCount,
+        };
+        TempData["Books"] = JsonSerializer.Serialize(serializablePagedList);
+        TempData.Keep();
         return View("Index", pagedBooks);
     }
 
@@ -94,25 +103,21 @@ public class BooksController : Controller
     [HttpPost]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        var readers = await _readersRepository.GetPaginatedReadersFromDbAsync();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            readers = readers
-                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+        var readers = await _readersRepository.GetPaginatedReadersFromDbAsync(search);
+
+        var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
+        TempData.Keep();
+
+        var initialBookList = deserialized.Items;
+        var bookDto = initialBookList.First(x => x.Id == bookId);
 
         ViewData["ReadersList"] = readers;
-        ViewData["CurrentBookId"] = bookId;
+        ViewData["CurrentBookId"] = bookDto.Id;
+        ViewData["CurrentBookTitle"] = bookDto.Title;
         ViewData["ShowBorrowPopup"] = true;
         ViewData["SearchTerm"] = search;
 
-        var booksList = await _bookRepository.GetBooksAsync(search);
-        var pagedBooksList = booksList.ToPagedList(1, 5);
-        ViewData["Action"] = "GetBooksFromDb";
-        ViewData["Search"] = "";
-
-        return View("Index", pagedBooksList);
+        return View("Index", new StaticPagedList<BookDto>(initialBookList, deserialized.PageNumber, deserialized.PageSize, deserialized.TotalItemCount));
     }
 
     [HttpPost]

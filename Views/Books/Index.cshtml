@@ -97,7 +97,7 @@
 { 
     <div class="popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
         <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
-            <h4>Select a reader to borrow the book</h4>
+            <h4>Select a reader to borrow @ViewData["CurrentBookTitle"].</h4>
 
            
             <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
@@ -110,7 +110,7 @@
                 <select name="readerId" class="form-select mb-3" required>
                     @foreach (var reader in (List<Application.Dtos.ReaderSummaryDto>)ViewData["ReadersList"])
                     {
-                        <option value="@reader.Id">@reader.Name</option>
+                          <option value="@reader.Id">@reader.Name</option>
                     }
                 </select>
 

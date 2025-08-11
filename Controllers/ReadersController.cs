@@ -28,14 +28,7 @@ public class ReadersController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
     {
-        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            readers = readers
-                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(search);
 
         ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
         ViewData["Search"] = search;

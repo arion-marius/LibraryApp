@@ -24,10 +24,11 @@ public class ReadersRepository : IReadersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync()
+    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search)
     {
         var readers = await _dbContext.Readers
-            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
+            //.Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
+            .Where(r => r.Name.ToLower().Contains(search))
             .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
