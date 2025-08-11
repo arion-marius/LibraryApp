@@ -1,10 +1,8 @@
-﻿@model Application.Database.Readers.ReaderModel
+﻿@model Application.Dtos.ReaderDto
 
-@{
-    ViewData["Title"] = "Edit Readers";
-}
 
-<h2 class="text-center my-4">@ViewData["Title"]</h2>
+
+<h2 class="text-center my-4">Edit Readers</h2>
 
 <form asp-action="Edit" method="post" class="w-50 mx-auto border p-4 rounded shadow">
     <input type="hidden" asp-for="Id" />

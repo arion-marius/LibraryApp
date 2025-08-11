@@ -1,7 +1,7 @@
-﻿@using Application.Database.Books
+﻿@using Application.Dtos
 @using X.PagedList
 @using X.PagedList.Mvc.Core
-@model X.PagedList.IPagedList<BookModel>
+@model IPagedList<BookDto>
 
 <h2>@ViewData["Title"]</h2>
 
@@ -31,7 +31,7 @@
             <th>Title</th>
             <th>Author</th>
             <th>Stock</th>
-            <th></th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -46,6 +46,19 @@
                     <form asp-action="Delete" asp-route-id="@book.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this book?');" class="d-inline">
                         <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
                     </form>
+
+                    @if (book.Stock > 0)
+                    {
+                        <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="d-inline">
+                            <input type="hidden" name="bookId" value="@book.Id" />
+                            <button type="submit" class="btn btn-sm btn-primary">Borrow</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-secondary" disabled>Out of stock</button>
+                    }
+
                 </td>
             </tr>
         }
@@ -58,7 +71,7 @@
 }
 
 <div class="d-flex justify-content-center mt-4">
-    @Html.PagedListPager(Model, page => Url.Action(actionName, new { page, search = searchValue}), new PagedListRenderOptions
+    @Html.PagedListPager(Model, page => Url.Action(actionName, new { page, search = searchValue }), new PagedListRenderOptions
     {
         UlElementClasses = new[] { "pagination" },
         LiElementClasses = new[] { "page-item" },
@@ -79,3 +92,32 @@
         LinkToLastPageFormat = "»"
         })
 </div>
+
+@if (ViewData["ShowBorrowPopup"] != null && (bool)ViewData["ShowBorrowPopup"])
+{ 
+    <div class="popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
+        <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
+            <h4>Select a reader to borrow @ViewData["CurrentBookTitle"].</h4>
+
+           
+            <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
+                <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
+                <input type="text" name="search" value="@ViewData["SearchTerm"]" placeholder="Caută după nume..." class="form-control mb-2" />
+                <button type="submit" class="btn btn-primary">Caută</button>
+            </form>
+
+            <form method="post" asp-action="Borrow" asp-controller="Books">
+                <select name="readerId" class="form-select mb-3" required>
+                    @foreach (var reader in (List<Application.Dtos.ReaderSummaryDto>)ViewData["ReadersList"])
+                    {
+                          <option value="@reader.Id">@reader.Name</option>
+                    }
+                </select>
+
+                <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
+                <button type="submit" class="btn btn-success me-2">Borrow</button>
+                <a asp-action="GetBooksFromDb" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+}

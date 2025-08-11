@@ -1,40 +1,42 @@
-﻿using Application.Database.ReaderBooks;
+﻿using Application.Database;
+using Application.Database.CustomExceptions;
+using Application.Database.ReaderBooks;
 using Application.Database.Readers;
+using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Reflection.PortableExecutable;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using X.PagedList.Extensions;
 
 namespace Application.Controllers;
 
-public class ReadersController(IReadersRepository repository) : Controller
+public class ReadersController : Controller
 {
-    private readonly IReadersRepository _readerRepository = repository;
+    private readonly IReadersRepository _readerRepository;
 
-    [HttpGet]
-    public async Task<IActionResult> GetReadersFromDb(string? search, int? page)
+    public ReadersController(IReadersRepository readerRepository)
     {
-        var readers = await _readerRepository.GetReadersFromDbAsync();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            readers = readers
-                .Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
-
-        int pageSize = 5;
-        int pageNumber = page ?? 1;
-
-        var pagedReaders = readers.ToPagedList(pageNumber, pageSize);
-        ViewData["Action"] = "GetReadersFromDb";
-        ViewData["Search"] = search;
-
-        return View("Index", pagedReaders);
+        _readerRepository = readerRepository;
     }
 
-    [HttpGet ("Edit2/{id}")]
+    [HttpGet]
+    public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
+    {
+        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(search);
+
+        ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
+        ViewData["Search"] = search;
+
+        return View("Index", readers.ToPagedList(page ?? 1, 5));
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var reader = await _readerRepository.GetReaderByIdAsync(id);
@@ -44,7 +46,20 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpGet ("Details/{id}")]
+    [HttpPost]
+    public async Task<IActionResult> Edit(ReaderDto reader)
+    {
+        if (!ModelState.IsValid)
+            return View(reader);
+
+        await _readerRepository.UpdateReaderAsync(reader);
+        TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
+        TempData["AlertType"] = "success";
+
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var reader = await _readerRepository.GetReaderWithBooksByIdAsync(id);
@@ -54,18 +69,6 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpPost ("Edit/{id}")]
-    public async Task<IActionResult> Edit(ReaderModel reader)
-    {
-        if (!ModelState.IsValid)
-            return View(reader);
-
-        await _readerRepository.UpdateReaderAsync(reader);
-        TempData["AlertMessage"] = $"Reader \"{{reader.Name}}\" has been modified.";
-        TempData["AlertType"] = "success";
-
-        return RedirectToAction(nameof(GetReadersFromDb));
-    }
 
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
@@ -75,7 +78,7 @@ public class ReadersController(IReadersRepository repository) : Controller
         TempData["AlertMessage"] = message;
         TempData["AlertType"] = success ? "success" : "warning";
 
-        return RedirectToAction(nameof(GetReadersFromDb));
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
     [HttpGet]
@@ -88,20 +91,54 @@ public class ReadersController(IReadersRepository repository) : Controller
         return View(reader);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Borrow([FromRoute] int readerId, [FromRoute] int bookId)
+    [HttpGet]
+    public IActionResult Create()
     {
-        if (await _readerRepository.HasReachedBorrowLimitAsync(readerId))
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(string reader, string? email)
+    {
+        if (!ModelState.IsValid)
         {
-            TempData["AlertMessage"] = "Reader has already borrowed 5 books that are not yet returned.";
-            TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetReadersFromDb));
+            return View();
         }
 
-        await _readerRepository.AddReaderBookAsync(readerId, bookId);
+        try
+        {
+        _readerRepository.Insert(reader, email);
+        }
+        catch (ReaderNotFoundException)
+        {
+            TempData["AlertMessage"] = "reader obligatoriu";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (InvalidEmailException)
+        {
+            TempData["AlertMessage"] = "Email invalid";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
 
-        TempData["AlertMessage"] = "Book was successfully borrowed.";
-        TempData["AlertType"] = "success";
-        return RedirectToAction(nameof(GetReadersFromDb));
+
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
+
+
+    [HttpPost]
+    public async Task<IActionResult> ReturnBook(int readerId, int bookId)
+    {
+        if (readerId == 0 || bookId == 0)
+        {
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+
+        var readerDto = await _readerRepository.RemoveReaderBook(readerId, bookId);
+
+        return View(nameof(Details), readerDto);
+    }
+
 }
+

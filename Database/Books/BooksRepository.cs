@@ -1,7 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Application.Database.CustomExceptions;
+using Application.Database.ReaderBooks;
+using Application.Database.Readers;
+using Application.Dtos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace Application.Database.Books;
 
@@ -14,61 +22,61 @@ public class BooksRepository : IBooksRepository
         _dbContext = dbContext;
     }
 
-    //public Task<List<BookModel>> GetBooksAsync()
-    //{
-    //    return Task.FromResult(
-    //        new List<BookModel>
-    //        {
-    //            //new() { Id = 1, Title = "1984", Author = "George Orwell", Stock = 10 },
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee", Stock = 10},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald", Stock = 10, BorrowedCount = 0 },
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee"   , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald"    , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 1, Title = "1984", Author = "George Orwell" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 2, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 3, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 4, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 5, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10  , BorrowedCount = 0},
-    //            //new() { Id = 6, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 7, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 8, Title = "To Kill a Mockingbird", Author = "Harper Lee" , Stock = 10, BorrowedCount = 0},
-    //            //new() { Id = 9, Title = "The Great Gatsby", Author = "F. Scott Fitzgerald" , Stock = 10, BorrowedCount = 0}
-    //        });
-    //}
-
-    public async Task<List<BookModel>> GetBooksFromDbAsync()
+    public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
-        var books = await _dbContext.Books.ToListAsync();
+        var books = _dbContext.Books
+            .AsNoTracking()
+            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Select(book => new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Stock = book.Stock,
+            });
+
+        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
+        return pagedList;
+    }
+
+    public async Task<List<BookDto>> GetBooksAsync(string search)
+    {
+        var books = await _dbContext.Books
+            .AsNoTracking()
+            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Select(book => new BookDto()
+            {
+                Title = book.Title,
+                Author = book.Author,
+            })
+            .ToListAsync();
         return books;
     }
+
+
     public async Task<(bool success, string message)> DeleteBookAsync(int id)
     {
-        var book = await _dbContext.Books.FindAsync(id);
-        bool pulamea = await _dbContext.ReaderBooks.AnyAsync(rb => rb.BookId == id);
-        if (pulamea)
-            return (false, $"The book \"{{book.Title}}\" cannot be deleted because it is on loan.");
+        var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == id);
+        bool isBookBorrowed = book.Readers.Any();
+        if (isBookBorrowed)
+            return (false, $"The book {book.Title} cannot be deleted because it s borrowed.");
 
         _dbContext.Books.Remove(book);
         await _dbContext.SaveChangesAsync();
 
-        return (true, $"The book \"{{book.Title}}\" was successfully deleted.");
+        return (true, $"The book {book.Title} was succesfully deleted.");
     }
 
-    public async Task<BookModel> GetBookByIdAsync(int id)
+    public async Task<BookDto> GetBookByIdAsync(int id)
     {
-        return await _dbContext.Books.FindAsync(id);
+        return await _dbContext.Books
+            .AsNoTracking()
+            .Select(book => new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task UpdateBookAsync(BookModel book)
@@ -83,4 +91,41 @@ public class BooksRepository : IBooksRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task BorrowAsync(int bookId, int readerId)
+    {
+        var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
+        if (book == null)
+        {
+            throw new BookNotFoundException();
+        }
+        else if (book.Stock == 0)
+        {
+            throw new BookOutOfStockException();
+        }
+
+        var reader = await _dbContext.Readers.Include(r => r.ReaderBooks).FirstOrDefaultAsync(x => x.Id == readerId);
+        if (reader == null)
+        {
+            throw new ReaderNotFoundException();
+        }
+        if (reader.BooksBorrowed >= 5)
+        {
+            throw new TooManyBooksException();
+        }
+        if (reader.ReaderBooks.Any(x => x.BookId == book.Id && !x.ReturnedDate.HasValue))
+        {
+            throw new BookAlreadyBorrowedException();
+        }
+
+        reader.ReaderBooks.Add(new()
+        {
+            BookId = bookId,
+            ReaderId = readerId,
+            PickUpDate = DateTime.Now,
+        });
+        reader.BooksBorrowed++;
+        book.Stock--;
+        await _dbContext.SaveChangesAsync();
+
+    }
 }

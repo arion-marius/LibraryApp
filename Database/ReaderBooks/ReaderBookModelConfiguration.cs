@@ -7,9 +7,8 @@ public class ReaderBookModelConfiguration : IEntityTypeConfiguration<ReaderBookM
 {
     public void Configure(EntityTypeBuilder<ReaderBookModel> builder)
     {
-        builder.HasKey(x => new { x.ReaderId, x.BookId });
+        builder.HasKey(x => x.Id);
 
-        // Configure the foreign key relationships
         builder.HasOne(x => x.Reader)
             .WithMany(r => r.ReaderBooks)
             .HasForeignKey(x => x.ReaderId)
@@ -19,5 +18,8 @@ public class ReaderBookModelConfiguration : IEntityTypeConfiguration<ReaderBookM
             .WithMany(b => b.Readers)
             .HasForeignKey(x => x.BookId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(x => x.PickUpDate).IsRequired();
+        builder.Property(x => x.ReturnedDate).HasColumnType("datetime2(3)"); ;
     }
 }

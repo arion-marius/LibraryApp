@@ -1,27 +1,37 @@
-﻿@using X.PagedList.Mvc.Core
-@model X.PagedList.IPagedList<Application.Database.Readers.ReaderModel>
+﻿@using Application.Database.Books
+@using Application.Database.Readers
+@using Application.Dtos
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<ReaderSummaryDto>
 
 <h2>Readers List</h2>
 
 @if (TempData["AlertMessage"] != null)
 {
-    <div class="alert alert-@TempData["AlertType"]">
+    var alertType = TempData["AlertType"] as string ?? "info";
+    <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
         @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
 <form method="get" asp-action="@ViewData["Action"]" class="mb-3 d-flex justify-content-center">
-    <input type="text" name="search" value="@ViewData["Search"]" class="form-control w-25 me-2" placeholder="Search by name..." />
+    <input type="text" name="search" value="@ViewData["Search"]" class="form-control w-25 me-2" placeholder="Search by title..." />
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="Create" class="btn btn-success" asp>➕ Add Reader</a>
+</div>
 
 <table class="table table-hover table-striped align-middle text-center shadow">
     <thead class="table-dark">
         <tr>
-            <th style="text-align:center;">Name</th>
-            <th style="text-align:center;">Email</th>
-            <th style="text-align:center;">Borrowed books</th>
-            <th> </th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Borrowed Books</th>
+            <th>  </th>
         </tr>
     </thead>
     <tbody>
@@ -40,7 +50,7 @@
                     @reader.BooksBorrowed
                     @if (reader.BooksBorrowed > 0)
                     {
-                        <a asp-action="Details" asp-route-id="@reader.Id" class="btn btn-link btn-sm">(vezi)</a>
+                        <a asp-action="Details" asp-route-id="@reader.Id" class="btn btn-link btn-sm">(see)</a>
                     }
                 </td>
                 <td class="text-center">
@@ -54,10 +64,30 @@
     </tbody>
 </table>
 
+@{
+    var actionName = ViewData["Action"] as string ?? "Index";
+    var searchValue = ViewData["Search"] as string;
+}
+
 <div class="d-flex justify-content-center mt-4">
-    @Html.PagedListPager(Model, page => Url.Action("GetReadersFromDb", new { page, search = ViewData["Search"] }), new PagedListRenderOptions
+    @Html.PagedListPager(Model, page => Url.Action(actionName, new { page, search = searchValue }), new PagedListRenderOptions
     {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
         PageClasses = new[] { "page-link" },
-        ActiveLiElementClass = "active"
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        DisplayLinkToIndividualPages = true,
+        MaximumPageNumbersToDisplay = 5,
+
+        ActiveLiElementClass = "active",
+
+        LinkToFirstPageFormat = "«",
+        LinkToPreviousPageFormat = "‹",
+        LinkToNextPageFormat = "›",
+        LinkToLastPageFormat = "»"
         })
 </div>
+

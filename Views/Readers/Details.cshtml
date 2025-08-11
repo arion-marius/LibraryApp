@@ -1,4 +1,4 @@
-﻿@model Application.Database.Readers.ReaderModel
+﻿@model Application.Dtos.ReaderDto
 
 <h2>Books borrowed by @Model.Name</h2>
 
@@ -7,21 +7,34 @@
     <thead class="table-dark">
         <tr>
             <th>Book Title</th>
-            <th>Date of loan</th>
-            <th>Date of return</th>
+            <th>Borrow date</th>
+            <th>Return date</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var rb in Model.ReaderBooks)
+        @foreach (var book in Model.Books)
         {
-            var isDelayed = !rb.ReturnedDate.HasValue && rb.PickUpDate < rb.PickUpDate.AddMonths(1);
+            @if(!book.ReturnDate.HasValue)
+            {
+                
+            var isDelayed = !book.ReturnDate.HasValue && book.PickUpDate < book.PickUpDate.AddMonths(1);
 
             var rowClass = isDelayed ? "table-danger" : "";
             <tr class="@rowClass">
-                <td style="">@rb.Book.Title</td>
-                <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
-                <td>@(rb.ReturnedDate?.ToString("dd.MM.yyyy"))</td>
+                <td style="">@book.Title</td>
+                <td>@book.PickUpDate.ToString("dd.MM.yyyy")</td>
+                <td>@(book.ReturnDate?.ToString("dd.MM.yyyy"))</td>
+                <td>
+                    <form asp-action="ReturnBook" method="post" onsubmit="return confirm('Are you sure you want to return the book?');" class="d-inline">
+
+                        <input type="hidden" name="readerId" value="@Model.Id" />
+                        <input type="hidden" name="bookId" value="@book.Id" />
+                        <button type="submit" class="btn btn-sm btn-info">Return Book</button>
+                    </form>
+                </td>
             </tr>
+            }
         }
     </tbody>
 </table>
