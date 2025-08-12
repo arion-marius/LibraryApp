@@ -56,13 +56,16 @@ public class ReadersRepository : IReadersRepository
     public async Task UpdateReaderAsync(ReaderDto reader)
     {
         var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
+        var test = _dbContext.Readers.Any(x => x.Email == reader.Email);
+        var emailvalid = IsValidEmail(reader.Email);
+        var readeremail = readerModel.Email != reader.Email;
         if (string.IsNullOrWhiteSpace(reader.Name))
         {
             throw new ReaderNotFoundException();
         }
-        else if (!(readerModel.Email == reader.Email) && 
-            (IsValidEmail(reader.Email) 
-            || _dbContext.Readers.Any(x => x.Email == reader.Email)))
+        else if (readerModel.Email != reader.Email &&
+           IsValidEmail(reader.Email)
+            && _dbContext.Readers.Any(x => x.Email == reader.Email))
         {
             throw new UsedEmailException();
         }
