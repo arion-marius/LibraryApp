@@ -1,8 +1,5 @@
-﻿using Application.Database.ReaderBooks;
-using Application.Dtos;
-using Microsoft.AspNetCore.Mvc;
+﻿using Application.Dtos;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace Application.Database.Readers;

@@ -1,16 +1,7 @@
-﻿using Application.Database;
-using Application.Database.CustomExceptions;
-using Application.Database.ReaderBooks;
+﻿using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net.Mail;
-using System.Reflection.PortableExecutable;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using X.PagedList.Extensions;
 

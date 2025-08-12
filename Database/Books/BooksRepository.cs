@@ -1,9 +1,6 @@
 ﻿using Application.Database.CustomExceptions;
-using Application.Database.ReaderBooks;
-using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,11 +51,10 @@ public class BooksRepository : IBooksRepository
     }
 
 
-    public async Task<(bool success, string message)> DeleteBookAsync(int id)
+    public async Task<(bool success, string message)> DeleteBookAsync(int bookId)
     {
-        var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == id);
-        bool isBookBorrowed = book.Readers.Any();
-        if (isBookBorrowed)
+        var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == bookId);
+        if (book.Readers.Any(x => x.ReturnedDate == null))
             return (false, $"The book {book.Title} cannot be deleted because it s borrowed.");
 
         _dbContext.Books.Remove(book);

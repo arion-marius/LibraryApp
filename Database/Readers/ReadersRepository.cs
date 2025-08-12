@@ -1,15 +1,10 @@
 ﻿using Application.Database.CustomExceptions;
-using Application.Database.ReaderBooks;
 using Application.Database.Readers;
 using Application.Dtos;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
