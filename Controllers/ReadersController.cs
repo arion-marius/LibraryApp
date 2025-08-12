@@ -38,12 +38,28 @@ public class ReadersController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(ReaderDto reader)
+    public async Task<IActionResult> Edit(ReaderDto reader, ReaderDto email)
     {
         if (!ModelState.IsValid)
             return View(reader);
 
-        await _readerRepository.UpdateReaderAsync(reader);
+
+        try
+        {
+            await _readerRepository.UpdateReaderAsync(reader, email);
+        }
+        catch (ReaderNotFoundException)
+        {
+            TempData["AlertMessage"] = "reader is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (InvalidEmailException)
+        {
+            TempData["AlertMessage"] = "email is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
         TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
         TempData["AlertType"] = "success";
 
@@ -102,7 +118,7 @@ public class ReadersController : Controller
         }
         catch (ReaderNotFoundException)
         {
-            TempData["AlertMessage"] = "reader obligatoriu";
+            TempData["AlertMessage"] = "reader is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }

@@ -34,6 +34,8 @@ public class ReadersRepository : IReadersRepository
             })
             .ToListAsync();
 
+
+
         return readers;
     }
 
@@ -51,10 +53,17 @@ public class ReadersRepository : IReadersRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task UpdateReaderAsync(ReaderDto reader)
+    public async Task UpdateReaderAsync(ReaderDto reader, ReaderDto email)
     {
         var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
-
+        if (string.IsNullOrWhiteSpace(reader.Name))
+        {
+            throw new ReaderNotFoundException();
+        }
+        else if (string.IsNullOrWhiteSpace(reader.Email) || !IsValidEmail(reader.Email) || readerModel.Email.Contains(reader.Email))
+        {
+            throw new InvalidEmailException();
+        }
         readerModel.Name = reader.Name;
         readerModel.Email = reader.Email;
 

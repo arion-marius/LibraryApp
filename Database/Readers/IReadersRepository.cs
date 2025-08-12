@@ -7,7 +7,7 @@ namespace Application.Database.Readers;
 public interface IReadersRepository
 {
     Task<ReaderDto?> GetReaderByIdAsync(int id);
-    Task UpdateReaderAsync(ReaderDto reader);
+    Task UpdateReaderAsync(ReaderDto reader, ReaderDto email);
     Task<ReaderDto?> GetReaderWithBooksByIdAsync(int id);
     Task<(bool success, string message)> DeleteReaderAsync(int id);
     Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search);
