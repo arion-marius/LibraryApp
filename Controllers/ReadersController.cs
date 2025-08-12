@@ -43,7 +43,29 @@ public class ReadersController : Controller
         if (!ModelState.IsValid)
             return View(reader);
 
-        await _readerRepository.UpdateReaderAsync(reader);
+
+        try
+        {
+            await _readerRepository.UpdateReaderAsync(reader);
+        }
+        catch (ReaderNotFoundException)
+        {
+            TempData["AlertMessage"] = "reader is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (InvalidEmailException)
+        {
+            TempData["AlertMessage"] = "email is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch(UsedEmailException)
+        {
+            TempData["AlertMessage"] = "The email is already in use.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
         TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
         TempData["AlertType"] = "success";
 
@@ -98,11 +120,11 @@ public class ReadersController : Controller
 
         try
         {
-        _readerRepository.Insert(reader, email);
+            _readerRepository.Insert(reader, email);
         }
         catch (ReaderNotFoundException)
         {
-            TempData["AlertMessage"] = "reader obligatoriu";
+            TempData["AlertMessage"] = "reader is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
@@ -112,9 +134,15 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
+        catch (UsedEmailException)
+        {
+            TempData["AlertMessage"] = "The email is already in use.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
 
 
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
 
