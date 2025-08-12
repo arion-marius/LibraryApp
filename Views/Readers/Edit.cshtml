@@ -19,14 +19,8 @@
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="BooksBorrowed" class="form-label">Cărți împrumutate</label>
-        <input asp-for="BooksBorrowed" class="form-control" type="number" min="0" />
-        <span asp-validation-for="BooksBorrowed" class="text-danger"></span>
-    </div>
-
     <div class="d-flex justify-content-between">
-        <a asp-action="GetReadersFromDb" class="btn btn-secondary">Înapoi</a>
+        <a asp-action="GetPaginatedReadersFromDb" class="btn btn-secondary">Înapoi</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </div>
 </form>
