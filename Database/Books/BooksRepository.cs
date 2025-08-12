@@ -1,9 +1,6 @@
 ﻿using Application.Database.CustomExceptions;
-using Application.Database.ReaderBooks;
-using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;

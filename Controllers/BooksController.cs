@@ -1,18 +1,12 @@
-using Application.Database;
 using Application.Database.Books;
 using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using X.PagedList;
-using X.PagedList.Extensions;
 
 namespace Application.Controllers;
 
