@@ -120,7 +120,7 @@ public class ReadersController : Controller
 
         try
         {
-        _readerRepository.Insert(reader, email);
+            _readerRepository.Insert(reader, email);
         }
         catch (ReaderNotFoundException)
         {
@@ -134,9 +134,15 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
+        catch (UsedEmailException)
+        {
+            TempData["AlertMessage"] = "The email is already in use.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
 
 
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
     }
 
 

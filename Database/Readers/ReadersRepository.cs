@@ -56,9 +56,6 @@ public class ReadersRepository : IReadersRepository
     public async Task UpdateReaderAsync(ReaderDto reader)
     {
         var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
-        var test = _dbContext.Readers.Any(x => x.Email == reader.Email);
-        var emailvalid = IsValidEmail(reader.Email);
-        var readeremail = readerModel.Email != reader.Email;
         if (string.IsNullOrWhiteSpace(reader.Name))
         {
             throw new ReaderNotFoundException();
@@ -127,6 +124,10 @@ public class ReadersRepository : IReadersRepository
         else if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
         {
             throw new InvalidEmailException();
+        }
+        else if (_dbContext.Readers.Any(x => x.Email == email))
+        {
+            throw new UsedEmailException();
         }
 
         _dbContext.Readers.Add(newReader);
