@@ -1,21 +1,20 @@
-﻿@model Application.Dtos.ReaderDto
+﻿@using Application.Database.Readers
+@model Application.Dtos.ReaderDto
 
-
-
-<h2 class="text-center my-4">Edit Readers</h2>
+<h2 class="text-center my-4">Edit Reader</h2>
 
 <form asp-action="Edit" method="post" class="w-50 mx-auto border p-4 rounded shadow">
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
         <label asp-for="Name" class="form-label">Name</label>
-        <input asp-for="Name" class="form-control" />
+        <input type="text" asp-for="Name" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3" >
         <label asp-for="Email" class="form-label">Email</label>
-        <input asp-for="Email" class="form-control" />
+        <input type="email" asp-for="Email" typeof="email" class="form-control" maxlength="@ReaderModel.EmailMaxLength" />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 

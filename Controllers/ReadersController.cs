@@ -43,10 +43,9 @@ public class ReadersController : Controller
         if (!ModelState.IsValid)
             return View(reader);
 
-
         try
         {
-            await _readerRepository.UpdateReaderAsync(reader);
+                await _readerRepository.UpdateReaderAsync(reader);
         }
         catch (ReaderNotFoundException)
         {
@@ -66,6 +65,25 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
+        catch (EmailMaxLengthException)
+        {
+            TempData["AlertMessage"] = "The email exceeds 254 characters";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (ReaderMaxLenghtException)
+        {
+            TempData["AlertMessage"] = "The name of the reader exceeds 100 characters";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (InvalidReaderException)
+        {
+            TempData["AlertMessage"] = "Invalid Reader Name";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+
         TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
         TempData["AlertType"] = "success";
 
@@ -140,11 +158,27 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
-
-
+        catch (EmailMaxLengthException)
+        {
+            TempData["AlertMessage"] = "The email exceeds 254 characters";
+            TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
-    }
+        }
+        catch (ReaderMaxLenghtException)
+        {
+            TempData["AlertMessage"] = "The name of the reader exceeds 100 characters";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
+        catch (InvalidReaderException)
+        {
+            TempData["AlertMessage"] = "Invalid Reader Name";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        }
 
+        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+    }
 
     [HttpPost]
     public async Task<IActionResult> ReturnBook(int readerId, int bookId)

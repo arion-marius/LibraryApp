@@ -1,4 +1,5 @@
 ﻿@page
+@using Application.Database.Readers
 @{
 }
 
@@ -6,10 +7,10 @@
 
 <form method="post" asp-action="Create">
     <label>Name</label>
-    <input type="text" name="reader"/>
+    <input type="text" name="reader" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
 
     <label>Email</label>
-    <input type="email" name="email"/>
+    <input type="email" name="email" maxlength="254"/>
 
     <button type="submit">Save</button>
 </form>

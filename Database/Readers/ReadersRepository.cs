@@ -41,7 +41,7 @@ public class ReadersRepository : IReadersRepository
 
     public async Task<ReaderDto?> GetReaderByIdAsync(int id)
     {
-        return await _dbContext.Readers
+        var readerDto = await _dbContext.Readers
             .Where(x => x.Id == id)
             .Select(x => new ReaderDto
             {
@@ -51,6 +51,7 @@ public class ReadersRepository : IReadersRepository
                 BooksBorrowed = x.BooksBorrowed,
             })
             .FirstOrDefaultAsync();
+        return readerDto;
     }
 
     public async Task UpdateReaderAsync(ReaderDto reader)
@@ -60,15 +61,25 @@ public class ReadersRepository : IReadersRepository
         {
             throw new ReaderNotFoundException();
         }
-        else if (readerModel.Email != reader.Email &&
-           IsValidEmail(reader.Email)
-            && _dbContext.Readers.Any(x => x.Email == reader.Email))
+        else if (string.IsNullOrWhiteSpace(reader.Email) || !IsValidEmail(reader.Email))
+        {
+            throw new InvalidEmailException();
+        }
+        else if (_dbContext.Readers.Any(x => x.Id != reader.Id && x.Email == reader.Email))
         {
             throw new UsedEmailException();
         }
-        else if (string.IsNullOrWhiteSpace(reader.Email))
+        else if (reader.Email.Length > ReaderModel.EmailMaxLength)
         {
-            throw new InvalidEmailException();
+            throw new EmailMaxLengthException();
+        }
+        else if (reader.Name.Length > ReaderModel.NameMaxLength)
+        {
+            throw new ReaderMaxLenghtException();
+        }
+        else if (!IsValidName(reader.Name))
+        {
+            throw new InvalidReaderException();
         }
 
         readerModel.Name = reader.Name;
@@ -82,7 +93,7 @@ public class ReadersRepository : IReadersRepository
         var reader = await _dbContext.Readers.FindAsync(id);
 
         if (reader.BooksBorrowed > 0)
-            return (false, $"Reader {reader.Name} cannot be deleted because they have books on loan.");
+            return (false, $"Reader {reader.Name} cannot be deleted because they have books borrowed.");
 
         _dbContext.Readers.Remove(reader);
         await _dbContext.SaveChangesAsync();
@@ -129,8 +140,20 @@ public class ReadersRepository : IReadersRepository
         {
             throw new UsedEmailException();
         }
+        else if (email.Length > ReaderModel.EmailMaxLength)
+        {
+            throw new EmailMaxLengthException();
+        }
+        else if(reader.Length > ReaderModel.NameMaxLength)
+        {
+            throw new ReaderMaxLenghtException();
+        }
+        else if(!IsValidName(reader))
+        {
+            throw new InvalidReaderException();
+        }
 
-        _dbContext.Readers.Add(newReader);
+            _dbContext.Readers.Add(newReader);
         _dbContext.SaveChanges();
     }
 
@@ -140,6 +163,12 @@ public class ReadersRepository : IReadersRepository
             @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
             RegexOptions.IgnoreCase);
     }
+
+    private bool IsValidName(string reader)
+    {
+        return Regex.IsMatch(reader, @"^[a-zA-Z -]+$", RegexOptions.IgnoreCase);
+    }
+    
 
     public async Task<ReaderDto> RemoveReaderBook(int readerId, int bookId)
     {
