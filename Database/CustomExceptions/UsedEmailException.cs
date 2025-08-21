@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
-namespace Application.Database.CustomExceptions
+namespace Application.Database.CustomExceptions;
+
+public class UsedEmailException : Exception
 {
-    public class UsedEmailException : Exception
+    public UsedEmailException()
     {
-        public UsedEmailException()
-        {
-        }
-
-        public UsedEmailException(string message) : base(message)
-        {
-        }
-
-        public UsedEmailException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
     }
+
+    public UsedEmailException(string message) : base(message)
+    {
+    }
+
+    public UsedEmailException(string message, Exception innerException) : base(message, innerException)
+    {
+    }
+
 }

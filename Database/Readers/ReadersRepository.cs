@@ -54,40 +54,6 @@ public class ReadersRepository : IReadersRepository
         return readerDto;
     }
 
-    public async Task UpdateReaderAsync(ReaderDto reader)
-    {
-        var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
-        if (string.IsNullOrWhiteSpace(reader.Name))
-        {
-            throw new ReaderNotFoundException();
-        }
-        else if (string.IsNullOrWhiteSpace(reader.Email) || !IsValidEmail(reader.Email))
-        {
-            throw new InvalidEmailException();
-        }
-        else if (_dbContext.Readers.Any(x => x.Id != reader.Id && x.Email == reader.Email))
-        {
-            throw new UsedEmailException();
-        }
-        else if (reader.Email.Length > ReaderModel.EmailMaxLength)
-        {
-            throw new EmailMaxLengthException();
-        }
-        else if (reader.Name.Length > ReaderModel.NameMaxLength)
-        {
-            throw new ReaderMaxLenghtException();
-        }
-        else if (!IsValidName(reader.Name))
-        {
-            throw new InvalidReaderException();
-        }
-
-        readerModel.Name = reader.Name;
-        readerModel.Email = reader.Email;
-
-        await _dbContext.SaveChangesAsync();
-    }
-
     public async Task<(bool success, string message)> DeleteReaderAsync(int id)
     {
         var reader = await _dbContext.Readers.FindAsync(id);
@@ -124,51 +90,39 @@ public class ReadersRepository : IReadersRepository
             .FirstOrDefaultAsync();
     }
 
-    public void Insert(string reader, string email)
+    public async Task UpdateReaderAsync(ReaderDto reader)
     {
-        var newReader = new ReaderModel { Name = reader, Email = email };
+        ReaderValidator.Validate(reader.Name, reader.Email);
 
-        if (string.IsNullOrWhiteSpace(reader))
-        {
-            throw new ReaderNotFoundException();
-        }
-        else if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
-        {
-            throw new InvalidEmailException();
-        }
-        else if (_dbContext.Readers.Any(x => x.Email == email))
+        if (_dbContext.Readers.Any(x => x.Id != reader.Id && x.Email == reader.Email))
         {
             throw new UsedEmailException();
         }
-        else if (email.Length > ReaderModel.EmailMaxLength)
+
+        var readerModel = await _dbContext.Readers.FindAsync(reader.Id);
+        readerModel.Name = reader.Name;
+        readerModel.Email = reader.Email;
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public void Insert(string reader, string email)
+    {
+        ReaderValidator.Validate(reader, email);
+
+        if (_dbContext.Readers.Any(x => x.Email == email))
         {
-            throw new EmailMaxLengthException();
-        }
-        else if(reader.Length > ReaderModel.NameMaxLength)
-        {
-            throw new ReaderMaxLenghtException();
-        }
-        else if(!IsValidName(reader))
-        {
-            throw new InvalidReaderException();
+            throw new UsedEmailException();
         }
 
-            _dbContext.Readers.Add(newReader);
+        var newReader = new ReaderModel { Name = reader, Email = email };
+
+        _dbContext.Readers.Add(newReader);
         _dbContext.SaveChanges();
     }
 
-    private bool IsValidEmail(string email)
-    {
-        return Regex.IsMatch(email,
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-            RegexOptions.IgnoreCase);
-    }
 
-    private bool IsValidName(string reader)
-    {
-        return Regex.IsMatch(reader, @"^[a-zA-Z -]+$", RegexOptions.IgnoreCase);
-    }
-    
+
 
     public async Task<ReaderDto> RemoveReaderBook(int readerId, int bookId)
     {

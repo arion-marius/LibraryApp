@@ -1,7 +1,5 @@
 ﻿@page
 @using Application.Database.Readers
-@{
-}
 
 <h2 class="text-center my-4">Add Reader</h2>
 
@@ -10,7 +8,7 @@
     <input type="text" name="reader" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
 
     <label>Email</label>
-    <input type="email" name="email" maxlength="254"/>
+    <input type="email" name="email" maxlength="@ReaderModel.EmailMaxLength"/>
 
     <button type="submit">Save</button>
 </form>

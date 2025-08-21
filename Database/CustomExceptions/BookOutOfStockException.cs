@@ -11,7 +11,7 @@ public class BookOutOfStockException : Exception
     public BookOutOfStockException(string message) : base(message)
     {
     }
-    
+
     public BookOutOfStockException(string message, Exception innerException) : base(message, innerException)
     {
     }
