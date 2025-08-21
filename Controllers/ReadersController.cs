@@ -141,7 +141,7 @@ public class ReadersController : Controller
             _readerRepository.Insert(reader, email);
         }
         catch (ReaderNotFoundException)
-        {
+            {
             TempData["AlertMessage"] = "Reader is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));

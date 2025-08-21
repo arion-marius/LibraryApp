@@ -14,7 +14,7 @@
     </div>
 }
 
-<form method="get" asp-action="@ViewData["Action"]" class="mb-3 d-flex justify-content-center">
+<form method="get" asp-action="GetBooksFromDb" class="mb-3 d-flex justify-content-center">
     <input type="text" name="search" value="@ViewData["Search"]" class="form-control w-25 me-2" placeholder="Search by title..." />
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
@@ -66,12 +66,11 @@
 </table>
 
 @{
-    var actionName = ViewData["Action"] as string ?? "Index";
     var searchValue = ViewData["Search"] as string;
 }
 
 <div class="d-flex justify-content-center mt-4">
-    @Html.PagedListPager(Model, page => Url.Action(actionName, new { page, search = searchValue }), new PagedListRenderOptions
+    @Html.PagedListPager(Model, page => Url.Action("GetBooksFromDb", new { page, search = searchValue }), new PagedListRenderOptions
     {
         UlElementClasses = new[] { "pagination" },
         LiElementClasses = new[] { "page-item" },

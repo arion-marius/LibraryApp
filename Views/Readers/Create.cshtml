@@ -2,14 +2,23 @@
 @using Application.Database.Readers
 
 <h2 class="text-center my-4">Add Reader</h2>
-
+<form method="post" class="w-50 mx-auto border p-xxl-5 rounded shadow">
 <form method="post" asp-action="Create">
-    <label>Name</label>
-    <input type="text" name="reader" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
-
-    <label>Email</label>
-    <input type="email" name="email" maxlength="@ReaderModel.EmailMaxLength"/>
-
-    <button type="submit">Save</button>
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" name="reader"class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z ]/g,'')" maxlength="@ReaderModel.NameMaxLength" required />
+        <span class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" maxlength="@ReaderModel.EmailMaxLength" required />
+        <span  class="text-danger"></span>
+    </div>
+    <div class="d-flex justify-content-between">
+        <a asp-action="GetPaginatedReadersFromDb" class="btn btn-secondary">Back</a>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
 </form>
+</form>
+
 

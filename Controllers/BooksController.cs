@@ -3,6 +3,7 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,18 +27,7 @@ public class BooksController : Controller
     {
         var pagedBooks = _bookRepository.GetPagedBooks(search, page);
 
-        ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
-
-        var serializablePagedList = new SerializablePagedList<BookDto>
-        {
-            Items = pagedBooks.ToList(),
-            PageNumber = pagedBooks.PageNumber,
-            PageSize = pagedBooks.PageSize,
-            TotalItemCount = pagedBooks.TotalItemCount,
-        };
-        TempData["Books"] = JsonSerializer.Serialize(serializablePagedList);
-        TempData.Keep();
         return View("Index", pagedBooks);
     }
 
@@ -54,8 +44,40 @@ public class BooksController : Controller
         {
             return View(book);
         }
-
-        await _bookRepository.AddBookAsync(book);
+        try
+        {
+            await _bookRepository.AddBookAsync(book);
+        }
+        catch (AuthorNotFoundException)
+        {
+            TempData["AlertMessage"] = "The Author is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidTitleException)
+        {
+            TempData["AlertMessage"] = "Title is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (AuthorMaxLenghtException)
+        {
+            TempData["AlertMessage"] = "Name of author is too long";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidAuthorException)
+        {
+            TempData["AlertMessage"] = "The Author is invalid.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookAlreadyExistException)
+        {
+            TempData["AlertMessage"] = "This book already exists.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
 
         TempData["AlertMessage"] = $"The book {book.Title} has been added.";
         TempData["AlertType"] = "success";
@@ -73,33 +95,37 @@ public class BooksController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(BookModel book)
     {
-        if (!ModelState.IsValid)
-            return View(book);
         try
         {
-        await _bookRepository.UpdateBookAsync(book);
+            await _bookRepository.UpdateBookAsync(book);
         }
         catch (AuthorNotFoundException)
         {
-            TempData["AlertMessage"] = $"The Author is required";
+            TempData["AlertMessage"] = "The Author is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
         catch (InvalidTitleException)
         {
-            TempData["AlertMessage"] = $"Title is required";
+            TempData["AlertMessage"] = "Title is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
         catch (AuthorMaxLenghtException)
         {
-            TempData["AlertMessage"] = $"Name of author is too long";
+            TempData["AlertMessage"] = "Name of author is too long";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }
         catch (InvalidAuthorException)
         {
-            TempData["AlertMessage"] = $"The Author is invalid.";
+            TempData["AlertMessage"] = "The Author is invalid.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookAlreadyExistException)
+        {
+            TempData["AlertMessage"] = "This book already exists.";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetBooksFromDb));
         }

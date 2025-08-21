@@ -2,16 +2,17 @@
 @model Application.Database.Books.BookModel
 
 <h2>Add book</h2>
-
+<form asp-action="Edit" method="post" class="w-50 mx-auto border p-4 rounded shadow">
+    <input type="hidden" asp-for="Id" />
 <form asp-action="Create" method="post">
     <div class="mb-3">
         <label asp-for="Title" class="form-label">Title</label>
-        <input asp-for="Title" class="form-control" />
+        <input asp-for="Title" class="form-control" required />
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Author" class="form-label">Author</label>
-        <input asp-for="Author" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
+        <input asp-for="Author" class="form-control" required oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
         <span asp-validation-for="Author" class="text-danger"></span>
     </div>
     <div class="mb-3">
@@ -23,7 +24,4 @@
     <button type="submit" class="btn btn-success">Add</button>
     <a asp-action="GetBooksFromDb" class="btn btn-secondary">Cancel</a>
 </form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+</form>

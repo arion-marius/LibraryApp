@@ -8,13 +8,13 @@
 
     <div class="mb-3">
         <label asp-for="Name" class="form-label">Name</label>
-        <input type="text" asp-for="Name" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
+        <input type="text" asp-for="Name" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z ]/g,'')" maxlength="@ReaderModel.NameMaxLength" required/>
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
     <div class="mb-3" >
         <label asp-for="Email" class="form-label">Email</label>
-        <input type="email" asp-for="Email" typeof="email" class="form-control" maxlength="@ReaderModel.EmailMaxLength" />
+        <input type="email" asp-for="Email" typeof="email" class="form-control" maxlength="@ReaderModel.EmailMaxLength" required />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
@@ -23,7 +23,3 @@
         <button type="submit" class="btn btn-primary">Save</button>
     </div>
 </form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

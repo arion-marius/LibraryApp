@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using X.PagedList;
 using X.PagedList.Extensions;
@@ -66,11 +67,13 @@ public class BooksRepository : IBooksRepository
     {
         return await _dbContext.Books
             .AsNoTracking()
+            .Where(book => book.Id == id) 
             .Select(book => new BookDto
             {
                 Id = book.Id,
                 Title = book.Title,
                 Author = book.Author,
+                Stock = book.Stock,
             })
             .FirstOrDefaultAsync();
     }
@@ -78,6 +81,11 @@ public class BooksRepository : IBooksRepository
     public async Task UpdateBookAsync(BookModel book)
     {
         BookValidator.Validate(book.Author, book.Title);
+        if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
+        {
+            throw new BookAlreadyExistException();
+        }
+
         _dbContext.Books.Update(book);
         await _dbContext.SaveChangesAsync();
     }
@@ -85,6 +93,11 @@ public class BooksRepository : IBooksRepository
     public async Task AddBookAsync(BookModel book)
     {
         BookValidator.Validate(book.Author, book.Title);
+        if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
+        {
+            throw new BookAlreadyExistException();
+        }
+
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
     }
