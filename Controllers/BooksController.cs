@@ -75,8 +75,34 @@ public class BooksController : Controller
     {
         if (!ModelState.IsValid)
             return View(book);
-
+        try
+        {
         await _bookRepository.UpdateBookAsync(book);
+        }
+        catch (AuthorNotFoundException)
+        {
+            TempData["AlertMessage"] = $"The Author is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidTitleException)
+        {
+            TempData["AlertMessage"] = $"Title is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (AuthorMaxLenghtException)
+        {
+            TempData["AlertMessage"] = $"Name of author is too long";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidAuthorException)
+        {
+            TempData["AlertMessage"] = $"The Author is invalid.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
         TempData["AlertMessage"] = $"The book \"{book.Title}\" has been updated.";
         TempData["AlertType"] = "success";
 

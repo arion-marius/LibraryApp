@@ -142,7 +142,7 @@ public class ReadersController : Controller
         }
         catch (ReaderNotFoundException)
         {
-            TempData["AlertMessage"] = "reader is required";
+            TempData["AlertMessage"] = "Reader is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }

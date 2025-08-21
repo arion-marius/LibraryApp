@@ -1,4 +1,5 @@
-﻿@model Application.Database.Books.BookModel
+﻿@using Application.Database.Readers
+@model Application.Database.Books.BookModel
 
 <h2>Add book</h2>
 
@@ -10,7 +11,7 @@
     </div>
     <div class="mb-3">
         <label asp-for="Author" class="form-label">Author</label>
-        <input asp-for="Author" class="form-control" />
+        <input asp-for="Author" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
         <span asp-validation-for="Author" class="text-danger"></span>
     </div>
     <div class="mb-3">

@@ -1,4 +1,5 @@
-﻿@model Application.Dtos.BookDto
+﻿@using Application.Database.Readers
+@model Application.Dtos.BookDto
 
 @{
     ViewData["Title"] = "Edit book";
@@ -16,7 +17,7 @@
     </div>
     <div class="mb-3">
         <label asp-for="Author" class="form-label"></label>
-        <input asp-for="Author" class="form-control" />
+        <input asp-for="Author" class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z -]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
         <span asp-validation-for="Author" class="text-danger"></span>
     </div>
     <div class="mb-3">

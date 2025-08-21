@@ -31,8 +31,7 @@ public class BooksRepository : IBooksRepository
                 Author = book.Author,
                 Stock = book.Stock,
             });
-
-        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
+       var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
         return pagedList;
     }
 
@@ -71,18 +70,21 @@ public class BooksRepository : IBooksRepository
             {
                 Id = book.Id,
                 Title = book.Title,
+                Author = book.Author,
             })
             .FirstOrDefaultAsync();
     }
 
     public async Task UpdateBookAsync(BookModel book)
     {
+        BookValidator.Validate(book.Author, book.Title);
         _dbContext.Books.Update(book);
         await _dbContext.SaveChangesAsync();
     }
 
     public async Task AddBookAsync(BookModel book)
     {
+        BookValidator.Validate(book.Author, book.Title);
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
     }
