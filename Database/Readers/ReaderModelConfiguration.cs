@@ -10,9 +10,9 @@ public class ReaderModelConfiguration : IEntityTypeConfiguration<ReaderModel>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(ReaderModel.NameMaxLength);
+        builder.Property(x => x.Email).IsRequired().HasMaxLength(ReaderModel.EmailMaxLength);
         builder.Property(x => x.BooksBorrowed);
 
-        builder.HasIndex(x => x.Name).IsUnique();
         builder.HasIndex(x => x.Email).IsUnique();
     }
 }

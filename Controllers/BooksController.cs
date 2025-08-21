@@ -26,18 +26,7 @@ public class BooksController : Controller
     {
         var pagedBooks = _bookRepository.GetPagedBooks(search, page);
 
-        ViewData["Action"] = nameof(GetBooksFromDb);
         ViewData["Search"] = search;
-
-        var serializablePagedList = new SerializablePagedList<BookDto>
-        {
-            Items = pagedBooks.ToList(),
-            PageNumber = pagedBooks.PageNumber,
-            PageSize = pagedBooks.PageSize,
-            TotalItemCount = pagedBooks.TotalItemCount,
-        };
-        TempData["Books"] = JsonSerializer.Serialize(serializablePagedList);
-        TempData.Keep();
         return View("Index", pagedBooks);
     }
 
@@ -48,14 +37,46 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(BookModel book)
+    public async Task<IActionResult> Create(BookDto book)
     {
         if (!ModelState.IsValid)
         {
             return View(book);
         }
-
-        await _bookRepository.AddBookAsync(book);
+        try
+        {
+            await _bookRepository.AddBookAsync(book);
+        }
+        catch (AuthorNotFoundException)
+        {
+            TempData["AlertMessage"] = "The Author is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidTitleException)
+        {
+            TempData["AlertMessage"] = "Title is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (AuthorMaxLenghtException)
+        {
+            TempData["AlertMessage"] = "Name of author is too long";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidAuthorException)
+        {
+            TempData["AlertMessage"] = "The Author is invalid.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookAlreadyExistException)
+        {
+            TempData["AlertMessage"] = "This book already exists.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
 
         TempData["AlertMessage"] = $"The book {book.Title} has been added.";
         TempData["AlertType"] = "success";
@@ -71,12 +92,42 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(BookModel book)
+    public async Task<IActionResult> Edit(BookDto book)
     {
-        if (!ModelState.IsValid)
-            return View(book);
-
-        await _bookRepository.UpdateBookAsync(book);
+        try
+        {
+            await _bookRepository.UpdateBookAsync(book);
+        }
+        catch (AuthorNotFoundException)
+        {
+            TempData["AlertMessage"] = "The Author is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidTitleException)
+        {
+            TempData["AlertMessage"] = "Title is required";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (AuthorMaxLenghtException)
+        {
+            TempData["AlertMessage"] = "Name of author is too long";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (InvalidAuthorException)
+        {
+            TempData["AlertMessage"] = "The Author is invalid.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
+        catch (BookAlreadyExistException)
+        {
+            TempData["AlertMessage"] = "This book already exists.";
+            TempData["AlertType"] = "warning";
+            return RedirectToAction(nameof(GetBooksFromDb));
+        }
         TempData["AlertMessage"] = $"The book \"{book.Title}\" has been updated.";
         TempData["AlertType"] = "success";
 

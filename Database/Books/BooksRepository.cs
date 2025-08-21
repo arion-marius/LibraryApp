@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using X.PagedList;
 using X.PagedList.Extensions;
@@ -13,12 +14,10 @@ namespace Application.Database.Books;
 public class BooksRepository : IBooksRepository
 {
     private readonly LibraryDbContext _dbContext;
-
     public BooksRepository(LibraryDbContext dbContext)
     {
         _dbContext = dbContext;
     }
-
     public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
         var books = _dbContext.Books
@@ -31,11 +30,9 @@ public class BooksRepository : IBooksRepository
                 Author = book.Author,
                 Stock = book.Stock,
             });
-
         var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
         return pagedList;
     }
-
     public async Task<List<BookDto>> GetBooksAsync(string search)
     {
         var books = await _dbContext.Books
@@ -49,8 +46,6 @@ public class BooksRepository : IBooksRepository
             .ToListAsync();
         return books;
     }
-
-
     public async Task<(bool success, string message)> DeleteBookAsync(int bookId)
     {
         var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == bookId);
@@ -62,31 +57,52 @@ public class BooksRepository : IBooksRepository
 
         return (true, $"The book {book.Title} was succesfully deleted.");
     }
-
     public async Task<BookDto> GetBookByIdAsync(int id)
     {
         return await _dbContext.Books
             .AsNoTracking()
+            .Where(book => book.Id == id)
             .Select(book => new BookDto
             {
                 Id = book.Id,
                 Title = book.Title,
+                Author = book.Author,
+                Stock = book.Stock,
             })
             .FirstOrDefaultAsync();
     }
-
-    public async Task UpdateBookAsync(BookModel book)
+    public async Task UpdateBookAsync(BookDto book)
     {
-        _dbContext.Books.Update(book);
+        BookValidator.TryValidate(book.Author, book.Title);
+        if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
+        {
+            throw new BookAlreadyExistException();
+        }
+
+        var bookDto = await _dbContext.Books.FindAsync(book.Id);
+        bookDto.Title = book.Title;
+        bookDto.Author = book.Author;
+        bookDto.Stock = book.Stock;
+
         await _dbContext.SaveChangesAsync();
     }
-
-    public async Task AddBookAsync(BookModel book)
+    public async Task AddBookAsync(BookDto book)
     {
-        _dbContext.Books.Add(book);
+        BookValidator.TryValidate(book.Author, book.Title);
+        if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
+        {
+            throw new BookAlreadyExistException();
+        }
+
+        var bookModel = new BookModel
+        {
+            Title = book.Title,
+            Author = book.Author,
+            Stock = book.Stock
+        };
+        _dbContext.Books.Add(bookModel);
         await _dbContext.SaveChangesAsync();
     }
-
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
@@ -122,6 +138,5 @@ public class BooksRepository : IBooksRepository
         reader.BooksBorrowed++;
         book.Stock--;
         await _dbContext.SaveChangesAsync();
-
     }
 }

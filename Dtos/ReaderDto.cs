@@ -8,6 +8,5 @@ public class ReaderDto
     public string Name { get; set; }
     public int? BooksBorrowed { get; set; }
     public string Email { get; set; }
-
     public ICollection<BookDto> Books { get; set; }
 }
