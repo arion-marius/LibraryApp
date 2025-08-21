@@ -3,7 +3,6 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;

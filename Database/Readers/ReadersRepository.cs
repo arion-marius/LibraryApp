@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Application.Database;
@@ -33,9 +32,6 @@ public class ReadersRepository : IReadersRepository
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
             .ToListAsync();
-
-
-
         return readers;
     }
 
@@ -92,7 +88,7 @@ public class ReadersRepository : IReadersRepository
 
     public async Task UpdateReaderAsync(ReaderDto reader)
     {
-        ReaderValidator.Validate(reader.Name, reader.Email);
+        ReaderValidator.TryValidate(reader.Name, reader.Email);
 
         if (_dbContext.Readers.Any(x => x.Id != reader.Id && x.Email == reader.Email))
         {
@@ -108,7 +104,7 @@ public class ReadersRepository : IReadersRepository
 
     public void Insert(string reader, string email)
     {
-        ReaderValidator.Validate(reader, email);
+        ReaderValidator.TryValidate(reader, email);
 
         if (_dbContext.Readers.Any(x => x.Email == email))
         {
@@ -165,5 +161,4 @@ public class ReadersRepository : IReadersRepository
                 .ToList()
         };
     }
-
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
-
 namespace Application.Database.CustomExceptions;
 
 public class BookAlreadyExistException : Exception

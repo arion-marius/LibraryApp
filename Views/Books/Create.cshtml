@@ -2,9 +2,7 @@
 @model Application.Database.Books.BookModel
 
 <h2>Add book</h2>
-<form asp-action="Edit" method="post" class="w-50 mx-auto border p-4 rounded shadow">
-    <input type="hidden" asp-for="Id" />
-<form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" class="w-50 mx-auto border p-4 rounded shadow">
     <div class="mb-3">
         <label asp-for="Title" class="form-label">Title</label>
         <input asp-for="Title" class="form-control" required />
@@ -23,5 +21,4 @@
 
     <button type="submit" class="btn btn-success">Add</button>
     <a asp-action="GetBooksFromDb" class="btn btn-secondary">Cancel</a>
-</form>
 </form>

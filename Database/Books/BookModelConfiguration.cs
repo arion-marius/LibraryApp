@@ -8,7 +8,6 @@ public class BookModelConfiguration : IEntityTypeConfiguration<BookModel>
     public void Configure(EntityTypeBuilder<BookModel> builder)
     {
         builder.HasKey(x => x.Id);
-
         builder.Property(x => x.Title).IsRequired().HasMaxLength(BookModel.TitleMaxLength);
         builder.Property(x => x.Author).IsRequired().HasMaxLength(BookModel.AuthorMaxLength);
     }

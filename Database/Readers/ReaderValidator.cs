@@ -5,7 +5,7 @@ namespace Application.Database.Readers;
 
 public class ReaderValidator
 {
-    public static void Validate(string name, string email)
+    public static void TryValidate(string name, string email)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -27,11 +27,9 @@ public class ReaderValidator
         {
             throw new InvalidReaderException();
         }
-
         bool IsValidEmail(string email) => Regex.IsMatch(email,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
                 RegexOptions.IgnoreCase);
-
         bool IsValidName(string name) => Regex.IsMatch(name, @"^[a-zA-Z -]+$", RegexOptions.IgnoreCase);
     }
 

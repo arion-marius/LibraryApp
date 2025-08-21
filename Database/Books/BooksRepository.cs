@@ -14,12 +14,10 @@ namespace Application.Database.Books;
 public class BooksRepository : IBooksRepository
 {
     private readonly LibraryDbContext _dbContext;
-
     public BooksRepository(LibraryDbContext dbContext)
     {
         _dbContext = dbContext;
     }
-
     public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
         var books = _dbContext.Books
@@ -32,10 +30,9 @@ public class BooksRepository : IBooksRepository
                 Author = book.Author,
                 Stock = book.Stock,
             });
-       var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
+        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
         return pagedList;
     }
-
     public async Task<List<BookDto>> GetBooksAsync(string search)
     {
         var books = await _dbContext.Books
@@ -49,8 +46,6 @@ public class BooksRepository : IBooksRepository
             .ToListAsync();
         return books;
     }
-
-
     public async Task<(bool success, string message)> DeleteBookAsync(int bookId)
     {
         var book = await _dbContext.Books.Include(x => x.Readers).FirstOrDefaultAsync(x => x.Id == bookId);
@@ -62,12 +57,11 @@ public class BooksRepository : IBooksRepository
 
         return (true, $"The book {book.Title} was succesfully deleted.");
     }
-
     public async Task<BookDto> GetBookByIdAsync(int id)
     {
         return await _dbContext.Books
             .AsNoTracking()
-            .Where(book => book.Id == id) 
+            .Where(book => book.Id == id)
             .Select(book => new BookDto
             {
                 Id = book.Id,
@@ -77,10 +71,9 @@ public class BooksRepository : IBooksRepository
             })
             .FirstOrDefaultAsync();
     }
-
     public async Task UpdateBookAsync(BookModel book)
     {
-        BookValidator.Validate(book.Author, book.Title);
+        BookValidator.TryValidate(book.Author, book.Title);
         if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
         {
             throw new BookAlreadyExistException();
@@ -89,10 +82,9 @@ public class BooksRepository : IBooksRepository
         _dbContext.Books.Update(book);
         await _dbContext.SaveChangesAsync();
     }
-
     public async Task AddBookAsync(BookModel book)
     {
-        BookValidator.Validate(book.Author, book.Title);
+        BookValidator.TryValidate(book.Author, book.Title);
         if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
         {
             throw new BookAlreadyExistException();
@@ -101,7 +93,6 @@ public class BooksRepository : IBooksRepository
         _dbContext.Books.Add(book);
         await _dbContext.SaveChangesAsync();
     }
-
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
@@ -137,6 +128,5 @@ public class BooksRepository : IBooksRepository
         reader.BooksBorrowed++;
         book.Stock--;
         await _dbContext.SaveChangesAsync();
-
     }
 }

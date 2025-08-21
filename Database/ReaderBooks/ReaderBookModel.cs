@@ -7,7 +7,6 @@ namespace Application.Database.ReaderBooks;
 public class ReaderBookModel
 {
     public int Id { get; set; }
-
     public int ReaderId { get; set; }
     public ReaderModel Reader { get; set; }
     public int BookId { get; set; }

@@ -2,8 +2,7 @@
 @using Application.Database.Readers
 
 <h2 class="text-center my-4">Add Reader</h2>
-<form method="post" class="w-50 mx-auto border p-xxl-5 rounded shadow">
-<form method="post" asp-action="Create">
+    <form method="post" asp-action="Create" class="w-50 mx-auto border p-xxl-5 rounded shadow">
     <div class="mb-3">
         <label class="form-label">Name</label>
         <input type="text" name="reader"class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z ]/g,'')" maxlength="@ReaderModel.NameMaxLength" required />
@@ -19,6 +18,3 @@
         <button type="submit" class="btn btn-primary">Save</button>
     </div>
 </form>
-</form>
-
-

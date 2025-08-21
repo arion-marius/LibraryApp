@@ -6,6 +6,5 @@ public class ReaderSummaryDto
     public string Name { get; set; }
     public int BooksBorrowed { get; set; }
     public string Email { get; set; }
-
     public bool HasLateBooks { get; set; }
 }

@@ -6,7 +6,7 @@ namespace Application.Database.Books;
 
 public class BookValidator
 {
-    public static void Validate(string author, string title)
+    public static void TryValidate(string author, string title)
     {
         if (string.IsNullOrWhiteSpace(author))
         {

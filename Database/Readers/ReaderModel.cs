@@ -12,7 +12,6 @@ public class ReaderModel
     public string Name { get; set; } = string.Empty;
     public int BooksBorrowed { get; set; } 
     public string Email { get; set; } = string.Empty;
-
     public ICollection<ReaderBookModel> ReaderBooks { get; set; } = [];
 }
     

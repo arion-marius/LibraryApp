@@ -45,7 +45,7 @@ public class ReadersController : Controller
 
         try
         {
-                await _readerRepository.UpdateReaderAsync(reader);
+            await _readerRepository.UpdateReaderAsync(reader);
         }
         catch (ReaderNotFoundException)
         {
@@ -59,7 +59,7 @@ public class ReadersController : Controller
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
         }
-        catch(UsedEmailException)
+        catch (UsedEmailException)
         {
             TempData["AlertMessage"] = "The email is already in use.";
             TempData["AlertType"] = "warning";
@@ -141,7 +141,7 @@ public class ReadersController : Controller
             _readerRepository.Insert(reader, email);
         }
         catch (ReaderNotFoundException)
-            {
+        {
             TempData["AlertMessage"] = "Reader is required";
             TempData["AlertType"] = "warning";
             return RedirectToAction(nameof(GetPaginatedReadersFromDb));
@@ -192,6 +192,4 @@ public class ReadersController : Controller
 
         return View(nameof(Details), readerDto);
     }
-
 }
-
