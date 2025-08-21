@@ -37,7 +37,7 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(BookModel book)
+    public async Task<IActionResult> Create(BookDto book)
     {
         if (!ModelState.IsValid)
         {
@@ -92,7 +92,7 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(BookModel book)
+    public async Task<IActionResult> Edit(BookDto book)
     {
         try
         {

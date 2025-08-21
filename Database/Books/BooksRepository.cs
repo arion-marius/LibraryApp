@@ -71,7 +71,7 @@ public class BooksRepository : IBooksRepository
             })
             .FirstOrDefaultAsync();
     }
-    public async Task UpdateBookAsync(BookModel book)
+    public async Task UpdateBookAsync(BookDto book)
     {
         BookValidator.TryValidate(book.Author, book.Title);
         if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
@@ -79,10 +79,14 @@ public class BooksRepository : IBooksRepository
             throw new BookAlreadyExistException();
         }
 
-        _dbContext.Books.Update(book);
+        var bookDto = await _dbContext.Books.FindAsync(book.Id);
+        bookDto.Title = book.Title;
+        bookDto.Author = book.Author;
+        bookDto.Stock = book.Stock;
+
         await _dbContext.SaveChangesAsync();
     }
-    public async Task AddBookAsync(BookModel book)
+    public async Task AddBookAsync(BookDto book)
     {
         BookValidator.TryValidate(book.Author, book.Title);
         if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
@@ -90,7 +94,13 @@ public class BooksRepository : IBooksRepository
             throw new BookAlreadyExistException();
         }
 
-        _dbContext.Books.Add(book);
+        var bookModel = new BookModel
+        {
+            Title = book.Title,
+            Author = book.Author,
+            Stock = book.Stock
+        };
+        _dbContext.Books.Add(bookModel);
         await _dbContext.SaveChangesAsync();
     }
     public async Task BorrowAsync(int bookId, int readerId)
