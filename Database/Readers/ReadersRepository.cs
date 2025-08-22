@@ -18,7 +18,7 @@ public class ReadersRepository : IReadersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ReaderSummaryDto>>  GetPaginatedReadersFromDbAsync(string search)
+    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search)
     {
         var readers = await _dbContext.Readers
             .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
