@@ -26,6 +26,16 @@ public class BooksController : Controller
     {
         var pagedBooks = _bookRepository.GetPagedBooks(search, page);
 
+        var serializablePagedList = new SerializablePagedList<BookDto>
+        {
+            Items = pagedBooks.ToList(),
+            PageNumber = pagedBooks.PageNumber,
+            PageSize = pagedBooks.PageSize,
+            TotalItemCount = pagedBooks.TotalItemCount,
+        };
+        TempData["Books"] = JsonSerializer.Serialize(serializablePagedList);
+        TempData.Keep();
+
         ViewData["Search"] = search;
         return View("Index", pagedBooks);
     }
