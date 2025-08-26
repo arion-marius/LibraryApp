@@ -3,6 +3,7 @@ using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
@@ -103,6 +104,14 @@ public class BooksRepository : IBooksRepository
         _dbContext.Books.Add(bookModel);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task AddBooksRandom()
+    {
+        var path = Path.Combine(Directory.GetCurrentDirectory(), "Database", "DatabaseSeed100k.sql");
+        var sql = System.IO.File.ReadAllText(path);
+        await _dbContext.Database.ExecuteSqlRawAsync(sql);
+    }
+
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);

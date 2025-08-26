@@ -3,10 +3,13 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using X.PagedList;
+
 
 namespace Application.Controllers;
 
@@ -20,6 +23,7 @@ public class BooksController : Controller
         _bookRepository = repository;
         _readersRepository = readersRepository;
     }
+
 
     [HttpGet]
     public IActionResult GetBooksFromDb(string? search, int page = 1)
@@ -45,6 +49,17 @@ public class BooksController : Controller
     {
         return View();
     }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateRandomBooks(BookDto book)
+    {
+        book.Title = "";
+        book.Author = "";
+        book.Stock = 0;
+        await _bookRepository.AddBooksRandom();
+        return RedirectToAction(nameof(GetBooksFromDb));
+    }
+
 
     [HttpPost]
     public async Task<IActionResult> Create(BookDto book)
@@ -155,10 +170,10 @@ public class BooksController : Controller
         return RedirectToAction(nameof(GetBooksFromDb));
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        var readers = await _readersRepository.GetPaginatedReadersFromDbAsync(search);
+        var readers = await _readersRepository.GetTop20ReadersAsync(search);
 
         var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
         TempData.Keep();

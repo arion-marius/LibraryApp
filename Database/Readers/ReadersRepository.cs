@@ -18,7 +18,7 @@ public class ReadersRepository : IReadersRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search)
+    public async Task<List<ReaderSummaryDto>> GetTop20ReadersAsync(string search)
     {
         var readers = await _dbContext.Readers
             .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
@@ -31,6 +31,7 @@ public class ReadersRepository : IReadersRepository
                 BooksBorrowed = r.BooksBorrowed,
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
+            .Take(20)
             .ToListAsync();
         return readers;
     }

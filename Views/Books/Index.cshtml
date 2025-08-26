@@ -21,10 +21,14 @@
 
 <div class="d-flex justify-content-end mb-3">
     <a asp-action="Create" class="btn btn-success">
-        ➕ Add Book
-    </a>
+        ➕ Add Book</a>
 </div>
-
+@* <form asp-action="CreateRandomBooks" method="post" class="d-inline">
+    <button type="submit" class="btn btn-success">
+        ➕ Add Books Random
+    </button>
+</form> *@
+ 
 <table class="table table-hover table-striped align-middle text-center shadow">
     <thead class="table-dark">
         <tr>
@@ -49,7 +53,7 @@
 
                     @if (book.Stock > 0)
                     {
-                        <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="d-inline">
+                        <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="d-inline">
                             <input type="hidden" name="bookId" value="@book.Id" />
                             <button type="submit" class="btn btn-sm btn-primary">Borrow</button>
                         </form>
@@ -98,25 +102,24 @@
         <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
             <h4>Select a reader to borrow @ViewData["CurrentBookTitle"].</h4>
 
-           
-            <form method="post" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
+            <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
                 <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
                 <input type="text" name="search" value="@ViewData["SearchTerm"]" placeholder="Search by name..." class="form-control mb-2" />
                 <button type="submit" class="btn btn-primary">Search</button>
             </form>
-
+            
             <form method="post" asp-action="Borrow" asp-controller="Books">
                 <select name="readerId" class="form-select mb-3" required>
                     @foreach (var reader in (List<Application.Dtos.ReaderSummaryDto>)ViewData["ReadersList"])
                     {
                           <option value="@reader.Id">@reader.Name</option>
                     }
-                </select>
+                </select> 
 
                 <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
                 <button type="submit" class="btn btn-success me-2">Borrow</button>
                 <a asp-action="GetBooksFromDb" class="btn btn-secondary ms-2">Cancel</a>
-            </form>
+            </form> 
         </div>
     </div>
 }

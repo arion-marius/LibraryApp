@@ -19,7 +19,7 @@ public class ReadersController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
     {
-        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(search);
+        var readers = await _readerRepository.GetTop20ReadersAsync(search);
 
         ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
         ViewData["Search"] = search;
