@@ -17,11 +17,12 @@ public class ReadersRepository : IReadersRepository
     {
         _dbContext = dbContext;
     }
+
     public async Task<List<ReaderSummaryDto>> GetAllReaders(string search)
     {
-        return await     _dbContext.Readers
-            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
-            .Where(r => string.IsNullOrWhiteSpace(search) ? true : r.Name.Contains(search))
+        return await _dbContext.Readers
+            .Include(x => x.ReaderBooks)
+            .Where(r => string.IsNullOrWhiteSpace(search) || r.Name.Contains(search))
             .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
@@ -32,22 +33,18 @@ public class ReadersRepository : IReadersRepository
             })
             .ToListAsync();
     }
-    public async Task<List<ReaderSummaryDto>> GetTop20ReadersAsync(string search)
+
+    public async Task<List<ReaderPopUpDto>> GetTop20ReadersAsync(string search)
     {
-        var readers = await _dbContext.Readers
-            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
-            .Where(r => string.IsNullOrWhiteSpace(search) ? true : r.Name.Contains(search))
-            .Select(r => new ReaderSummaryDto
+        return await _dbContext.Readers
+            .Where(r => string.IsNullOrWhiteSpace(search) || r.Name.Contains(search))
+            .Select(r => new ReaderPopUpDto
             {
                 Id = r.Id,
                 Name = r.Name,
-                Email = r.Email,
-                BooksBorrowed = r.BooksBorrowed,
-                HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
             })
             .Take(20)
             .ToListAsync();
-        return readers;
     }
 
     public async Task<ReaderDto?> GetReaderByIdAsync(int id)

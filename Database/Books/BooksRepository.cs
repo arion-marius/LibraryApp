@@ -3,9 +3,7 @@ using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using X.PagedList;
 using X.PagedList.Extensions;
@@ -19,11 +17,12 @@ public class BooksRepository : IBooksRepository
     {
         _dbContext = dbContext;
     }
+
     public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
         var books = _dbContext.Books
             .AsNoTracking()
-            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Where(b => string.IsNullOrEmpty(search) || b.Title.Contains(search))
             .Select(book => new BookDto
             {
                 Id = book.Id,
@@ -34,6 +33,7 @@ public class BooksRepository : IBooksRepository
         var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
         return pagedList;
     }
+
     public async Task<List<BookDto>> GetBooksAsync(string search)
     {
         var books = await _dbContext.Books

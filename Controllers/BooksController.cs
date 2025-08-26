@@ -3,13 +3,10 @@ using Application.Database.CustomExceptions;
 using Application.Database.Readers;
 using Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using X.PagedList;
-
 
 namespace Application.Controllers;
 
@@ -23,7 +20,6 @@ public class BooksController : Controller
         _bookRepository = repository;
         _readersRepository = readersRepository;
     }
-
 
     [HttpGet]
     public IActionResult GetBooksFromDb(string? search, int page = 1)
@@ -162,7 +158,7 @@ public class BooksController : Controller
     [HttpGet]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        var readers = await _readersRepository.GetTop20ReadersAsync(search);
+        var readerNames = await _readersRepository.GetTop20ReadersAsync(search);
 
         var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
         TempData.Keep();
@@ -170,7 +166,7 @@ public class BooksController : Controller
         var initialBookList = deserialized.Items;
         var bookDto = initialBookList.First(x => x.Id == bookId);
 
-        ViewData["ReadersList"] = readers;
+        ViewData["Top20PopUpReaders"] = readerNames;
         ViewData["CurrentBookId"] = bookDto.Id;
         ViewData["CurrentBookTitle"] = bookDto.Title;
         ViewData["ShowBorrowPopup"] = true;

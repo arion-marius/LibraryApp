@@ -21,7 +21,6 @@ public class ReadersController : Controller
     {
         var readers = await _readerRepository.GetAllReaders(search);
 
-        ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
         ViewData["Search"] = search;
 
         return View("Index", readers.ToPagedList(page ?? 1, 5));

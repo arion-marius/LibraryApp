@@ -10,7 +10,7 @@ public interface IReadersRepository
     Task UpdateReaderAsync(ReaderDto reader);
     Task<ReaderDto?> GetReaderWithBooksByIdAsync(int id);
     Task<(bool success, string message)> DeleteReaderAsync(int id);
-    Task<List<ReaderSummaryDto>> GetTop20ReadersAsync(string search);
+    Task<List<ReaderPopUpDto>> GetTop20ReadersAsync(string search);
     void Insert(string name, string email);
     Task<ReaderDto> RemoveReaderBook(int readerId, int bookId);
     Task<List<ReaderSummaryDto>> GetAllReaders(string search);

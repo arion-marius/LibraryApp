@@ -7,114 +7,116 @@
 
 @if (TempData["AlertMessage"] != null)
 {
-    var alertType = TempData["AlertType"] as string ?? "info";
-    <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
-        @TempData["AlertMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+   var alertType = TempData["AlertType"] as string ?? "info";
+   <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
+      @TempData["AlertMessage"]
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+   </div>
 }
 
 <form method="get" asp-action="GetBooksFromDb" class="mb-3 d-flex justify-content-center">
-    <input type="text" name="search" value="@ViewData["Search"]" class="form-control w-25 me-2" placeholder="Search by title..." />
-    <button type="submit" class="btn btn-primary">Search</button>
+   <input type="text" name="search" value="@ViewData["Search"]" class="form-control w-25 me-2" placeholder="Search by title..." />
+   <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
 <div class="d-flex justify-content-end mb-3">
-    <a asp-action="Create" class="btn btn-success">
-        ➕ Add Book</a>
+   <a asp-action="Create" class="btn btn-success">
+      ➕ Add Book
+   </a>
 </div>
- 
+
 <table class="table table-hover table-striped align-middle text-center shadow">
-    <thead class="table-dark">
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Stock</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var book in Model)
-        {
-            <tr>
-                <td>@book.Title</td>
-                <td>@book.Author</td>
-                <td>@book.Stock</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-warning me-1">✏️</a>
-                    <form asp-action="Delete" asp-route-id="@book.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this book?');" class="d-inline">
-                        <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
-                    </form>
+   <thead class="table-dark">
+      <tr>
+         <th>Title</th>
+         <th>Author</th>
+         <th>Stock</th>
+         <th>Actions</th>
+      </tr>
+   </thead>
+   <tbody>
+      @foreach (var book in Model)
+      {
+         <tr>
+            <td>@book.Title</td>
+            <td>@book.Author</td>
+            <td>@book.Stock</td>
+            <td>
+               <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-warning me-1">✏️</a>
+               <form asp-action="Delete" asp-route-id="@book.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this book?');" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+               </form>
 
-                    @if (book.Stock > 0)
-                    {
-                        <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="d-inline">
-                            <input type="hidden" name="bookId" value="@book.Id" />
-                            <button type="submit" class="btn btn-sm btn-primary">Borrow</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <button class="btn btn-sm btn-secondary" disabled>Out of stock</button>
-                    }
+               @if (book.Stock > 0)
+               {
+                  <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="d-inline">
+                     <input type="hidden" name="bookId" value="@book.Id" />
+                     <button type="submit" class="btn btn-sm btn-primary">Borrow</button>
+                  </form>
+               }
+               else
+               {
+                  <button class="btn btn-sm btn-secondary" disabled>Out of stock</button>
+               }
 
-                </td>
-            </tr>
-        }
-    </tbody>
+            </td>
+         </tr>
+      }
+   </tbody>
 </table>
 
 @{
-    var searchValue = ViewData["Search"] as string;
+   var searchValue = ViewData["Search"] as string;
 }
 
 <div class="d-flex justify-content-center mt-4">
-    @Html.PagedListPager(Model, page => Url.Action("GetBooksFromDb", new { page, search = searchValue }), new PagedListRenderOptions
-    {
-        UlElementClasses = new[] { "pagination" },
-        LiElementClasses = new[] { "page-item" },
-        PageClasses = new[] { "page-link" },
+   @Html.PagedListPager(Model, page => Url.Action("GetBooksFromDb", new { page, search = searchValue }), new PagedListRenderOptions
+   {
+      UlElementClasses = new[] { "pagination" },
+      LiElementClasses = new[] { "page-item" },
+      PageClasses = new[] { "page-link" },
 
-        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-        DisplayLinkToLastPage = PagedListDisplayMode.Always,
-        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
-        DisplayLinkToNextPage = PagedListDisplayMode.Always,
-        DisplayLinkToIndividualPages = true,
-        MaximumPageNumbersToDisplay = 5,
+      DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+      DisplayLinkToLastPage = PagedListDisplayMode.Always,
+      DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+      DisplayLinkToNextPage = PagedListDisplayMode.Always,
+      DisplayLinkToIndividualPages = true,
+      MaximumPageNumbersToDisplay = 5,
 
-        ActiveLiElementClass = "active",
+      ActiveLiElementClass = "active",
 
-        LinkToFirstPageFormat = "«",
-        LinkToPreviousPageFormat = "‹",
-        LinkToNextPageFormat = "›",
-        LinkToLastPageFormat = "»"
-        })
+      LinkToFirstPageFormat = "«",
+      LinkToPreviousPageFormat = "‹",
+      LinkToNextPageFormat = "›",
+      LinkToLastPageFormat = "»"
+      })
 </div>
 
 @if (ViewData["ShowBorrowPopup"] != null && (bool)ViewData["ShowBorrowPopup"])
-{ 
-    <div class="popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
-        <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
-            <h4>Select a reader to borrow @ViewData["CurrentBookTitle"].</h4>
+{
+   <div class="popup-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
+      <div class="popup-content" style="background:white;padding:20px;margin:50px auto;width:400px;box-shadow:0 0 10px rgba(0,0,0,0.25);border-radius:5px;">
+         <h4>Select a reader to borrow @ViewData["CurrentBookTitle"].</h4>
 
-            <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
-                <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
-                <input type="text" name="search" value="@ViewData["SearchTerm"]" placeholder="Search by name..." class="form-control mb-2" />
-                <button type="submit" class="btn btn-primary">Search</button>
-            </form>
-            
-            <form method="post" asp-action="Borrow" asp-controller="Books">
-                <select name="readerId" class="form-select mb-3" required>
-                    @foreach (var reader in (List<Application.Dtos.ReaderSummaryDto>)ViewData["ReadersList"])
-                    {
-                          <option value="@reader.Id">@reader.Name</option>
-                    }
-                </select> 
+         <form method="get" asp-action="ShowBorrowPopup" asp-controller="Books" class="mb-3">
+            <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
+            <input type="text" name="search" value="@ViewData["SearchTerm"]" placeholder="Search by name..." class="form-control mb-2" />
+            <button type="submit" class="btn btn-primary">Search</button>
+         </form>
 
-                <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
-                <button type="submit" class="btn btn-success me-2">Borrow</button>
-                <a asp-action="GetBooksFromDb" class="btn btn-secondary ms-2">Cancel</a>
-            </form> 
-        </div>
-    </div>
+         <form method="post" asp-action="Borrow" asp-controller="Books">
+            <select name="readerId" class="form-select mb-3" required>
+               @foreach (var reader in (List<ReaderPopUpDto>)ViewData["Top20PopUpReaders"])
+               {
+                  <option value="@reader.Id">@reader.Name</option>
+               }
+            </select>
+
+            <input type="hidden" name="bookId" value="@ViewData["CurrentBookId"]" />
+            <button type="submit" class="btn btn-success me-2">Borrow</button>
+            @* <button type="button" data-dismiss="modal" class="btn btn-success me-2">Cancel</button> *@
+            <a asp-action="GetBooksFromDb" class="btn btn-secondary ms-2">Cancel</a>
+         </form>
+      </div>
+   </div>
 }
