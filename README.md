@@ -42,9 +42,13 @@ enter in BookModelConfiguration/ReaderModelConfiguration and delete de part with
    git clone https://github.com/arion-marius/LibraryApp.git
    cd LibraryManagementSystem
 
-   
 2. **Configure SQL Server**
-Edit appsettings.json with your connection string.
+Add to appsettings.json a connection string section:
+
+ex:
+   "ConnectionStrings": {
+      "DefaultConnection": "Server=.\\SQLEXPRESS;Database=Library;Trusted_Connection=True;TrustServerCertificate=True;"
+   }
 
 3. **Apply migrations**
 dotnet ef database update
