@@ -51,17 +51,6 @@ public class BooksController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateRandomBooks(BookDto book)
-    {
-        book.Title = "";
-        book.Author = "";
-        book.Stock = 0;
-        await _bookRepository.AddBooksRandom();
-        return RedirectToAction(nameof(GetBooksFromDb));
-    }
-
-
-    [HttpPost]
     public async Task<IActionResult> Create(BookDto book)
     {
         if (!ModelState.IsValid)

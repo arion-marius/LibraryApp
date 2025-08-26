@@ -105,13 +105,6 @@ public class BooksRepository : IBooksRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddBooksRandom()
-    {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "Database", "DatabaseSeed100k.sql");
-        var sql = System.IO.File.ReadAllText(path);
-        await _dbContext.Database.ExecuteSqlRawAsync(sql);
-    }
-
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);

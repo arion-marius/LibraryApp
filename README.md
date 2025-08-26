@@ -3,16 +3,14 @@
 ## Library Management System
 
 An **ASP.NET Core MVC application** for managing books and readers.  
-It provides CRUD operations, search, pagination, borrowing/returning books, and validation using custom exceptions.  
+It provides CRUD operations, search, pagination, borrowing/returning books with validations who are using custom exceptions.  
 
 ---
 
 ## Features
 
-### Books
+### Books (10 books default)
 - Add, edit, delete books
-- Bulk insert **100k books and readers** via SQL seed script(if you want to use it, go to Views -> Books -> Index and uncomment lines 26 to 30 whitH CTRL+K+U to enable the "Add Books Random" button ALSO you have default 10 books and readers. If you want to delete all data, open SQL and write in SQLQuery these 2 commands: DELETE FROM Readers WHERE Id > 0
-          DELETE FROM Books WHERE Id > 0)
 - Pagination & search
 - Validations & exceptions:
   - Title required
@@ -20,12 +18,22 @@ It provides CRUD operations, search, pagination, borrowing/returning books, and 
   - Prevent duplicates
   - Prevent deletion of borrowed books
 
-### Readers
+### Readers (10 readers default)
 - Add, edit, delete readers
 - Email validation (required, unique, max length)
 - Prevent deletion if reader has borrowed books
 - Show borrowed books with history & return dates
 - Track overdue readers (borrowed > 1 month)
+
+
+
+### Bulk insert
+ **100k books and readers** 
+ via SQL seed script(if you want to use it, go to Database -> DatabaseSeed100k.SQL, copy, open SQL and paste it in your SQLQuery.
+ If you want to delete all data for the moment, open SQL and write in SQLQuery these 2 commands: DELETE FROM Readers WHERE Id > 0
+          DELETE FROM Books WHERE Id > 0), if you close the application, the database returns to its default form.
+
+
 
 ### Borrow & Return
 - Borrow books with validations:

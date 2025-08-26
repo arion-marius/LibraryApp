@@ -14,5 +14,4 @@ public interface IBooksRepository
     Task<List<BookDto>> GetBooksAsync(string search);
     PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5);
     Task UpdateBookAsync(BookDto book);
-    Task AddBooksRandom();
 }

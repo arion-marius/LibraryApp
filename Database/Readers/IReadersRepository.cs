@@ -13,4 +13,5 @@ public interface IReadersRepository
     Task<List<ReaderSummaryDto>> GetTop20ReadersAsync(string search);
     void Insert(string name, string email);
     Task<ReaderDto> RemoveReaderBook(int readerId, int bookId);
+    Task<List<ReaderSummaryDto>> GetAllReaders(string search);
 }

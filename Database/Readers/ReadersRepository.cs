@@ -17,7 +17,21 @@ public class ReadersRepository : IReadersRepository
     {
         _dbContext = dbContext;
     }
-
+    public async Task<List<ReaderSummaryDto>> GetAllReaders(string search)
+    {
+        return await     _dbContext.Readers
+            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
+            .Where(r => string.IsNullOrWhiteSpace(search) ? true : r.Name.Contains(search))
+            .Select(r => new ReaderSummaryDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Email = r.Email,
+                BooksBorrowed = r.BooksBorrowed,
+                HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
+            })
+            .ToListAsync();
+    }
     public async Task<List<ReaderSummaryDto>> GetTop20ReadersAsync(string search)
     {
         var readers = await _dbContext.Readers
