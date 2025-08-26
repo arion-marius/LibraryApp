@@ -10,13 +10,9 @@ using X.PagedList.Extensions;
 
 namespace Application.Database.Books;
 
-public class BooksRepository : IBooksRepository
+public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
 {
-    private readonly LibraryDbContext _dbContext;
-    public BooksRepository(LibraryDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly LibraryDbContext _dbContext = dbContext;
 
     public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
@@ -30,8 +26,7 @@ public class BooksRepository : IBooksRepository
                 Author = book.Author,
                 Stock = book.Stock,
             });
-        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
-        return pagedList;
+        return new PagedList<BookDto>(books, pageNumber, pageSize);
     }
 
     public async Task<List<BookDto>> GetBooksAsync(string search)

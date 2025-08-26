@@ -1,6 +1,7 @@
 ﻿using Application.Dtos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace Application.Database.Readers;
 
@@ -13,5 +14,5 @@ public interface IReadersRepository
     Task<List<ReaderPopUpDto>> GetTop20ReadersAsync(string search);
     void Insert(string name, string email);
     Task<ReaderDto> RemoveReaderBook(int readerId, int bookId);
-    Task<List<ReaderSummaryDto>> GetAllReaders(string search);
+    IPagedList<ReaderSummaryDto> GetPagedReaders(string search, int? page);
 }

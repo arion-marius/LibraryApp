@@ -158,7 +158,7 @@ public class BooksController : Controller
     [HttpGet]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        var readerNames = await _readersRepository.GetTop20ReadersAsync(search);
+        var top20Readers = await _readersRepository.GetTop20ReadersAsync(search);
 
         var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
         TempData.Keep();
@@ -166,7 +166,7 @@ public class BooksController : Controller
         var initialBookList = deserialized.Items;
         var bookDto = initialBookList.First(x => x.Id == bookId);
 
-        ViewData["Top20PopUpReaders"] = readerNames;
+        ViewData["Top20PopUpReaders"] = top20Readers;
         ViewData["CurrentBookId"] = bookDto.Id;
         ViewData["CurrentBookTitle"] = bookDto.Title;
         ViewData["ShowBorrowPopup"] = true;
