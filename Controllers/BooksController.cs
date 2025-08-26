@@ -155,10 +155,10 @@ public class BooksController : Controller
         return RedirectToAction(nameof(GetBooksFromDb));
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> ShowBorrowPopup(int bookId, string search = "")
     {
-        var readers = await _readersRepository.GetPaginatedReadersFromDbAsync(search);
+        var top20Readers = await _readersRepository.GetTop20ReadersAsync(search);
 
         var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
         TempData.Keep();
@@ -166,7 +166,7 @@ public class BooksController : Controller
         var initialBookList = deserialized.Items;
         var bookDto = initialBookList.First(x => x.Id == bookId);
 
-        ViewData["ReadersList"] = readers;
+        ViewData["Top20PopUpReaders"] = top20Readers;
         ViewData["CurrentBookId"] = bookDto.Id;
         ViewData["CurrentBookTitle"] = bookDto.Title;
         ViewData["ShowBorrowPopup"] = true;

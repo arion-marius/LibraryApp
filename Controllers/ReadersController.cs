@@ -17,14 +17,13 @@ public class ReadersController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPaginatedReadersFromDb(string? search, int? page)
+    public IActionResult GetPagedReaders(string? search, int? page = 1)
     {
-        var readers = await _readerRepository.GetPaginatedReadersFromDbAsync(search);
+        var readers = _readerRepository.GetPagedReaders(search, page);
 
-        ViewData["Action"] = nameof(GetPaginatedReadersFromDb);
         ViewData["Search"] = search;
 
-        return View("Index", readers.ToPagedList(page ?? 1, 5));
+        return View("Index", readers);
     }
 
     [HttpGet]
@@ -51,43 +50,43 @@ public class ReadersController : Controller
         {
             TempData["AlertMessage"] = "reader is required";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (InvalidEmailException)
         {
             TempData["AlertMessage"] = "email is required";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (UsedEmailException)
         {
             TempData["AlertMessage"] = "The email is already in use.";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (EmailMaxLengthException)
         {
             TempData["AlertMessage"] = "The email exceeds 254 characters";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (ReaderMaxLenghtException)
         {
             TempData["AlertMessage"] = "The name of the reader exceeds 100 characters";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (InvalidReaderException)
         {
             TempData["AlertMessage"] = "Invalid Reader Name";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
 
         TempData["AlertMessage"] = $"Reader {reader.Name} has been modified.";
         TempData["AlertType"] = "success";
 
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        return RedirectToAction(nameof(GetPagedReaders));
     }
 
     [HttpGet]
@@ -109,7 +108,7 @@ public class ReadersController : Controller
         TempData["AlertMessage"] = message;
         TempData["AlertType"] = success ? "success" : "warning";
 
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        return RedirectToAction(nameof(GetPagedReaders));
     }
 
     [HttpGet]
@@ -144,40 +143,40 @@ public class ReadersController : Controller
         {
             TempData["AlertMessage"] = "Reader is required";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (InvalidEmailException)
         {
             TempData["AlertMessage"] = "Email invalid";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (UsedEmailException)
         {
             TempData["AlertMessage"] = "The email is already in use.";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (EmailMaxLengthException)
         {
             TempData["AlertMessage"] = "The email exceeds 254 characters";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (ReaderMaxLenghtException)
         {
             TempData["AlertMessage"] = "The name of the reader exceeds 100 characters";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
         catch (InvalidReaderException)
         {
             TempData["AlertMessage"] = "Invalid Reader Name";
             TempData["AlertType"] = "warning";
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
 
-        return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+        return RedirectToAction(nameof(GetPagedReaders));
     }
 
     [HttpPost]
@@ -185,7 +184,7 @@ public class ReadersController : Controller
     {
         if (readerId == 0 || bookId == 0)
         {
-            return RedirectToAction(nameof(GetPaginatedReadersFromDb));
+            return RedirectToAction(nameof(GetPagedReaders));
         }
 
         var readerDto = await _readerRepository.RemoveReaderBook(readerId, bookId);

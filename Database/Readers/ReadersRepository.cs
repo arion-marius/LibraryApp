@@ -6,23 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace Application.Database;
 
-public class ReadersRepository : IReadersRepository
+public class ReadersRepository(LibraryDbContext dbContext) : IReadersRepository
 {
-    private readonly LibraryDbContext _dbContext;
+    private readonly LibraryDbContext _dbContext = dbContext;
 
-    public ReadersRepository(LibraryDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private const int PageSize = 5;
 
-    public async Task<List<ReaderSummaryDto>> GetPaginatedReadersFromDbAsync(string search)
+    public IPagedList<ReaderSummaryDto> GetPagedReaders(string search, int? page = 1)
     {
-        var readers = await _dbContext.Readers
-            .Include(x => x.ReaderBooks).ThenInclude(x => x.Book)
-            .Where(r => string.IsNullOrWhiteSpace(search) ? true : r.Name.Contains(search))
+        var readersQueryable = _dbContext.Readers
+            .Include(x => x.ReaderBooks)
+            .Where(r => string.IsNullOrWhiteSpace(search) || r.Name.Contains(search))
             .Select(r => new ReaderSummaryDto
             {
                 Id = r.Id,
@@ -30,9 +28,22 @@ public class ReadersRepository : IReadersRepository
                 Email = r.Email,
                 BooksBorrowed = r.BooksBorrowed,
                 HasLateBooks = r.ReaderBooks.Any(rb => rb.ReturnedDate == null && rb.PickUpDate.AddMonths(1) < DateTime.Now)
+            });
+
+        return new PagedList<ReaderSummaryDto>(readersQueryable, page ?? 1, PageSize);
+    }
+
+    public async Task<List<ReaderPopUpDto>> GetTop20ReadersAsync(string search)
+    {
+        return await _dbContext.Readers
+            .Where(r => string.IsNullOrWhiteSpace(search) || r.Name.Contains(search))
+            .Select(r => new ReaderPopUpDto
+            {
+                Id = r.Id,
+                Name = r.Name,
             })
+            .Take(20)
             .ToListAsync();
-        return readers;
     }
 
     public async Task<ReaderDto?> GetReaderByIdAsync(int id)
@@ -116,9 +127,6 @@ public class ReadersRepository : IReadersRepository
         _dbContext.Readers.Add(newReader);
         _dbContext.SaveChanges();
     }
-
-
-
 
     public async Task<ReaderDto> RemoveReaderBook(int readerId, int bookId)
     {

@@ -1,6 +1,5 @@
 ﻿using Application.Database.ReaderBooks;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace Application.Database.Readers;
 

@@ -3,43 +3,39 @@
 
 
 <div class="row">
-    <div class="col-md-4 border-end">
-        <h1>@Model.Name</h1>
-        <p><strong>Number of books read so far:</strong> @Model.Books.Count()</p>
-        <p><strong>Email:</strong> @Model.Email</p>
-    </div>
+   <div class="col-md-4 border-end">
+      <h1>@Model.Name</h1>
+      <p><strong>Number of books read so far:</strong> @Model.Books.Count()</p>
+      <p><strong>Email:</strong> @Model.Email</p>
+   </div>
 
-    <div class="col-md-8">
-        @if (!Model.Books.Any())
-        {
-            <p>There are no recorded borrows.</p>
-        }
-        else
-        {
-            <table class="table table-striped text-center align-middle shadow">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Book Title</th>
-                        <th>Date of borrow</th>
-                        <th>Date of return</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var rb in @Model.Books.OrderByDescending(rb => rb.PickUpDate))
-                    {
-                        var rowClass = rb.ReturnDate == null ? "table-danger" : "";
-                        <tr class="@rowClass">
-                            <td>@rb.Title</td>
-                            <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
-                            <td>
-                                @(rb.ReturnDate.HasValue
-                                                        ? rb.ReturnDate.Value.ToString("dd.MM.yyyy")
-                                                        : "")
-                    </td>
-                </tr>
-                                }
-                </tbody>
-            </table>
-        }
-    </div>
+   <div class="col-md-8">
+      @if (!Model.Books.Any())
+      {
+         <p>There are no recorded borrows.</p>
+      }
+      else
+      {
+         <table class="table table-striped text-center align-middle shadow">
+            <thead class="table-dark">
+               <tr>
+                  <th>Book Title</th>
+                  <th>Date of borrow</th>
+                  <th>Date of return</th>
+               </tr>
+            </thead>
+            <tbody>
+               @foreach (var rb in @Model.Books.OrderByDescending(rb => rb.PickUpDate))
+               {
+                  var rowClass = rb.ReturnDate == null ? "table-danger" : "";
+                  <tr class="@rowClass">
+                     <td>@rb.Title</td>
+                     <td>@rb.PickUpDate.ToString("dd.MM.yyyy")</td>
+                     <td>@(rb.ReturnDate.HasValue? rb.ReturnDate.Value.ToString("dd.MM.yyyy") : "")</td>
+                  </tr>
+               }
+            </tbody>
+         </table>
+      }
+   </div>
 </div>

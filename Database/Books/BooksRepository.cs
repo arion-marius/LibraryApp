@@ -4,25 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace Application.Database.Books;
 
-public class BooksRepository : IBooksRepository
+public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
 {
-    private readonly LibraryDbContext _dbContext;
-    public BooksRepository(LibraryDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly LibraryDbContext _dbContext = dbContext;
+
     public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
     {
         var books = _dbContext.Books
             .AsNoTracking()
-            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+            .Where(b => string.IsNullOrEmpty(search) || b.Title.Contains(search))
             .Select(book => new BookDto
             {
                 Id = book.Id,
@@ -30,9 +26,9 @@ public class BooksRepository : IBooksRepository
                 Author = book.Author,
                 Stock = book.Stock,
             });
-        var pagedList = new PagedList<BookDto>(books, pageNumber, pageSize);
-        return pagedList;
+        return new PagedList<BookDto>(books, pageNumber, pageSize);
     }
+
     public async Task<List<BookDto>> GetBooksAsync(string search)
     {
         var books = await _dbContext.Books
@@ -103,6 +99,7 @@ public class BooksRepository : IBooksRepository
         _dbContext.Books.Add(bookModel);
         await _dbContext.SaveChangesAsync();
     }
+
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
