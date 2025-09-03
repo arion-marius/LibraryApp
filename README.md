@@ -5,7 +5,7 @@ An **ASP.NET Core MVC application** for managing books and readers. It provides 
 By default, the application starts with 10 books and 10 readers. If you want to add more (up to 100k), you can do a bulk insert by copying the content of Database/DatabaseSeed100k.SQL and execute it against your SQL server instance.
 
 ##  Tech Stack
-- **DOT .NET:** 9.0
+- **.NET:** 9.0
   - winget install Microsoft.DotNet.SDK.9
 
 - **Backend:** ASP.NET Core MVC (C#)
