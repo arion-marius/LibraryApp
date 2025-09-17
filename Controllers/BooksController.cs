@@ -22,9 +22,9 @@ public class BooksController : Controller
     }
 
     [HttpGet]
-    public IActionResult GetBooksFromDb(string? search, int page = 1)
+    public IActionResult GetBooksFromDb(string search = "", int page = 1)
     {
-        var pagedBooks = _bookRepository.GetPagedBooks(search, page);
+        var pagedBooks = _bookRepository.GetPagedBooks(search.Trim(), page);
 
         var serializablePagedList = new SerializablePagedList<BookDto>
         {
@@ -161,7 +161,6 @@ public class BooksController : Controller
         var top20Readers = await _readersRepository.GetTop20ReadersAsync(search);
 
         var deserialized = JsonSerializer.Deserialize<SerializablePagedList<BookDto>>(TempData["Books"] as string);
-        TempData.Keep();
 
         var initialBookList = deserialized.Items;
         var bookDto = initialBookList.First(x => x.Id == bookId);

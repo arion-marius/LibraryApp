@@ -17,7 +17,7 @@
    </div>
    <div class="mb-3">
       <label asp-for="Author" class="form-label"></label>
-      <input asp-for="Author" required class="form-control" oninput="this.value=this.value.replace(/[^a-zA-Z ]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
+        <input asp-for="Author" required class="form-control" oninput="this.value=this.value.replace(/[^a-zA-ZăâîșțĂÂÎȘȚ ]/g,'')" maxlength="@ReaderModel.NameMaxLength" />
       <span asp-validation-for="Author" class="text-danger"></span>
    </div>
    <div class="mb-3">

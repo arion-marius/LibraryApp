@@ -4,6 +4,7 @@ using Application.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Application.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250909125705_CollationChange")]
+    partial class CollationChange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,11 +40,6 @@ namespace Application.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("NormalizedTitle")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<int>("Stock")
                         .HasColumnType("int");
 
@@ -60,7 +58,6 @@ namespace Application.Migrations
                         {
                             Id = 1,
                             Author = "Mihail Sadoveanu",
-                            NormalizedTitle = "Baltagul",
                             Stock = 99,
                             Title = "Baltagul"
                         },
@@ -68,7 +65,6 @@ namespace Application.Migrations
                         {
                             Id = 2,
                             Author = "Marin Preda",
-                            NormalizedTitle = "Morometii",
                             Stock = 99,
                             Title = "Moromeții"
                         },
@@ -76,7 +72,6 @@ namespace Application.Migrations
                         {
                             Id = 3,
                             Author = "George Călinescu",
-                            NormalizedTitle = "Enigma Otiliei",
                             Stock = 99,
                             Title = "Enigma Otiliei"
                         },
@@ -84,7 +79,6 @@ namespace Application.Migrations
                         {
                             Id = 4,
                             Author = "Liviu Rebreanu",
-                            NormalizedTitle = "Ion",
                             Stock = 99,
                             Title = "Ion"
                         },
@@ -92,7 +86,6 @@ namespace Application.Migrations
                         {
                             Id = 5,
                             Author = "Camil Petrescu",
-                            NormalizedTitle = "Ultima noapte de dragoste, intaia noapte de razboi",
                             Stock = 99,
                             Title = "Ultima noapte de dragoste, întâia noapte de război"
                         },
@@ -100,7 +93,6 @@ namespace Application.Migrations
                         {
                             Id = 6,
                             Author = "Ion Creangă",
-                            NormalizedTitle = "Amintiri din copilarie",
                             Stock = 99,
                             Title = "Amintiri din copilărie"
                         },
@@ -108,7 +100,6 @@ namespace Application.Migrations
                         {
                             Id = 7,
                             Author = "Mateiu Caragiale",
-                            NormalizedTitle = "Craii de Curtea-Veche",
                             Stock = 99,
                             Title = "Craii de Curtea-Veche"
                         },
@@ -116,7 +107,6 @@ namespace Application.Migrations
                         {
                             Id = 8,
                             Author = "Liviu Rebreanu",
-                            NormalizedTitle = "Padurea spanzuratilor",
                             Stock = 99,
                             Title = "Pădurea spânzuraților"
                         },
@@ -124,7 +114,6 @@ namespace Application.Migrations
                         {
                             Id = 9,
                             Author = "Mircea Eliade",
-                            NormalizedTitle = "Scrinul negru",
                             Stock = 99,
                             Title = "Scrinul negru"
                         },
@@ -132,7 +121,6 @@ namespace Application.Migrations
                         {
                             Id = 10,
                             Author = "Marin Preda",
-                            NormalizedTitle = "Cel mai iubit dintre pamanteni",
                             Stock = 99,
                             Title = "Cel mai iubit dintre pământeni"
                         });
@@ -267,28 +255,6 @@ namespace Application.Migrations
                             Email = "agache.dianamxn@gmail.com",
                             Name = "Diana Agache"
                         });
-                });
-
-            modelBuilder.Entity("LibraryApp.Database.Books.NormalizedTitleBookModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Author")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("NormalizedTitle");
                 });
 
             modelBuilder.Entity("Application.Database.ReaderBooks.ReaderBookModel", b =>

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Application.Database.Books;
 
-public class BookValidator
+public partial class BookValidator
 {
     public static void TryValidate(string author, string title)
     {
@@ -25,5 +25,9 @@ public class BookValidator
             throw new InvalidAuthorException();
         }
     }
-    static bool IsValidName(string name) => Regex.IsMatch(name, @"^[a-zA-Z -]+$", RegexOptions.IgnoreCase);
+
+    static bool IsValidName(string name) => NameRegex().IsMatch(name);
+
+    [GeneratedRegex(@"^[a-zA-ZăâîșțĂÂÎȘȚ -]+$", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex NameRegex();
 }
