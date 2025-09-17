@@ -3,7 +3,10 @@ using Application.Dtos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using X.PagedList;
 using X.PagedList.Extensions;
@@ -14,26 +17,48 @@ public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
 {
     private readonly LibraryDbContext _dbContext = dbContext;
 
-    public PagedList<BookDto> GetPagedBooks(string search, int pageNumber = 1, int pageSize = 5)
+    public PagedList<BookDto> GetPagedBooks(string search = "", int pageNumber = 1, int pageSize = 5)
     {
-        var books = _dbContext.Books
-            .AsNoTracking()
-            .Where(b => string.IsNullOrEmpty(search) || b.Title.Contains(search))
-            .Select(book => new BookDto
-            {
-                Id = book.Id,
-                Title = book.Title,
-                Author = book.Author,
-                Stock = book.Stock,
-            });
-        return new PagedList<BookDto>(books, pageNumber, pageSize);
-    }
+        bool containsDiacritics = search.Any(c => "ăâîșțĂÂÎȘȚ".Contains(c));
 
+        IQueryable<BookDto> booksQueryable;
+        if (!containsDiacritics)
+        {
+            var normalizedSearch = StringHelper.Normalize(search).ToLower();
+            booksQueryable = _dbContext.Books
+                .AsNoTracking()
+                .OrderBy(b => b.NormalizedTitle)
+                .Where(b => string.IsNullOrEmpty(normalizedSearch) || b.NormalizedTitle.Contains(normalizedSearch))
+                .Select(book => new BookDto
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    Author = book.Author,
+                    Stock = book.Stock,
+                });
+        }
+        else
+        {
+            booksQueryable = _dbContext.Books
+                 .AsNoTracking()
+                 .OrderBy(b => b.Title)
+                 .Where(b => string.IsNullOrEmpty(search) || EF.Functions.Collate(b.Title.ToLower(), "Romanian_100_CI_AS").Contains(search.ToLower()))
+                 .Select(book => new BookDto
+                 {
+                     Id = book.Id,
+                     Title = book.Title,
+                     Author = book.Author,
+                     Stock = book.Stock
+                 });
+    }
+        return new PagedList<BookDto>(booksQueryable, pageNumber, pageSize);
+    }
     public async Task<List<BookDto>> GetBooksAsync(string search)
     {
+        var normalizedSearch = StringHelper.Normalize(search);
         var books = await _dbContext.Books
             .AsNoTracking()
-            .Where(b => string.IsNullOrEmpty(search) ? true : b.Title.Contains(search))
+           .Where(b => string.IsNullOrEmpty(normalizedSearch) ? true : b.NormalizedTitle.Contains(normalizedSearch))
             .Select(book => new BookDto()
             {
                 Title = book.Title,
@@ -79,13 +104,14 @@ public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
         bookDto.Title = book.Title;
         bookDto.Author = book.Author;
         bookDto.Stock = book.Stock;
+        bookDto.NormalizedTitle = StringHelper.Normalize(book.Title);
 
         await _dbContext.SaveChangesAsync();
     }
     public async Task AddBookAsync(BookDto book)
     {
         BookValidator.TryValidate(book.Author, book.Title);
-        if (_dbContext.Books.Any(x => x.Id != book.Id && x.Author == book.Author && x.Title == book.Title))
+        if (_dbContext.Books.Any(x => x.Author == book.Author && x.Title == book.Title))
         {
             throw new BookAlreadyExistException();
         }
@@ -94,12 +120,12 @@ public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
         {
             Title = book.Title,
             Author = book.Author,
-            Stock = book.Stock
+            Stock = book.Stock,
+            NormalizedTitle = StringHelper.Normalize(book.Title)
         };
         _dbContext.Books.Add(bookModel);
         await _dbContext.SaveChangesAsync();
     }
-
     public async Task BorrowAsync(int bookId, int readerId)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(x => x.Id == bookId);
@@ -136,4 +162,29 @@ public class BooksRepository(LibraryDbContext dbContext) : IBooksRepository
         book.Stock--;
         await _dbContext.SaveChangesAsync();
     }
+
+
 }
+public static class StringHelper
+{
+    public static string Normalize(string input)
+    {
+        if (input == null) return null;
+
+        var normalized = input.Normalize(NormalizationForm.FormD);
+
+        var sb = new StringBuilder();
+
+        foreach (var c in normalized)
+        {
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+            {
+                sb.Append(c);
+            }
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+    }
+}
+

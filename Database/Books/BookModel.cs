@@ -11,5 +11,6 @@ public class BookModel
     public string Title { get; set; }
     public string Author { get; set; }
     public int Stock { get; set; }
+    public string NormalizedTitle { get; set; }
     public ICollection<ReaderBookModel> Readers { get; set; } = [];
 }
